@@ -1,0 +1,21 @@
+{
+"name": "Kavach SOS Emergency Shield",
+"short_name": "Kavach SOS",
+"start_url": "index.html",
+"display": "standalone",
+"background_color": "#030a0d",
+"theme_color": "#062f2e",
+"orientation": "portrait-primary",
+"icons": [
+{
+"src": "https://placehold.co/192x192/062f2e/2dd4bf?text=Kavach",
+"type": "image/png",
+"sizes": "192x192"
+},
+{
+"src": "https://placehold.co/512x512/062f2e/2dd4bf?text=Kavach+SOS",
+"type": "image/png",
+"sizes": "512x512"
+}
+]
+}

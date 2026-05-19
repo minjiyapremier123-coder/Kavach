@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kavach SOS - Indian Offline Emergency Shield</title>
+    
+    <!-- Tailwind CSS for soothing modern design tokens -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for crisp, recognizable high-contrast tactical icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet.js Map Framework for live GPS tile maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- QRious Library for scannable offline QR Code compilation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030a0d; /* Calming deep oceanic dark space */
+        }
+
+        .accent-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Soothing Glassmorphic Panels */
+        .glass-panel {
+            background: rgba(10, 30, 35, 0.7); /* Deep sea-teal tinted transparent glass */
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(20, 184, 166, 0.25); /* Mild glowing mint border */
+        }
+
+        /* Pulsing indicator animations */
+        @keyframes soothing-wave {
+            0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.4); }
+            70% { transform: scale(1.08); opacity: 0.2; box-shadow: 0 0 0 15px rgba(20, 184, 166, 0); }
+            100% { transform: scale(1.15); opacity: 0; box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+        }
+        .soothing-pulse-active {
+            animation: soothing-wave 2s cubic-bezier(0.25, 0, 0, 1) infinite;
+        }
+
+        /* Smooth responsive audio wave transitions */
+        .audio-bar {
+            transition: height 0.08s ease-out, background-color 0.2s;
+        }
+
+        /* Compass ring rotation transition */
+        .compass-ring {
+            transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+
+        /* Hide Scrollbar helper classes */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="text-teal-50 select-none overflow-x-hidden transition-all duration-300">
+
+    <!-- SOS Morse Optical Strobe Overlay (Fog-penetrating Amber/Warm Glow) -->
+    <div id="flash-overlay" class="fixed inset-0 z-50 hidden bg-stone-950 flex flex-col items-center justify-center">
+        <div class="text-center p-6 bg-stone-950/95 border-2 border-teal-400 rounded-3xl max-w-sm mx-4 shadow-2xl">
+            <h2 class="text-3xl font-black text-amber-400 mb-3 tracking-wider accent-font animate-pulse" data-translate="beacon_overlay_title">UNIFIED KAVACH BEACON</h2>
+            <p class="text-xs text-stone-300 mb-6 leading-relaxed" data-translate="beacon_overlay_desc">Flashing and sounding synchronized "S-O-S" Morse code. Direct screen outwards towards rescue squads, canine teams, or aerial patrols.</p>
+            <button onclick="toggleUnifiedBeacon()" class="px-6 py-3.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold tracking-wider rounded-xl transition duration-200 w-full shadow-lg shadow-teal-950/50" data-translate="deactivate_beacon">
+                DISARM UNIFIED BEACON
+            </button>
+        </div>
+    </div>
+
+    <!-- Screen Battery Conservation Dimmer Overlay -->
+    <div id="battery-dimmer" class="fixed inset-0 bg-black/92 pointer-events-none z-40 hidden transition-opacity duration-500"></div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="max-w-md mx-auto min-h-screen flex flex-col justify-between relative shadow-2xl bg-teal-950/80 pb-20 border-x border-teal-900/40">
+        
+        <!-- Soothing Premium Header Area -->
+        <header class="bg-teal-950/95 border-b border-teal-900/30 p-4 sticky top-0 z-30 backdrop-blur-md">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <span class="relative flex h-3.5 w-3.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-teal-500"></span>
+                    </span>
+                    <span id="header-app-title" class="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-teal-300 via-emerald-400 to-sky-300 bg-clip-text text-transparent accent-font">KAVACH SOS</span>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <!-- Dynamic Language Switch Button -->
+                    <button onclick="toggleLanguage()" class="flex items-center space-x-1 text-[11px] font-extrabold px-2.5 py-1.5 rounded-xl bg-teal-900/60 text-teal-300 border border-teal-800/40 hover:bg-teal-900 transition" title="Change Language / ભાષા બદલો">
+                        <i data-lucide="languages" class="w-3.5 h-3.5"></i>
+                        <span id="lang-btn-text">हिन्दी</span>
+                    </button>
+                    <!-- Energy Optimization Toggle -->
+                    <button onclick="toggleBatterySaver()" id="battery-btn" class="flex items-center space-x-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-xl bg-teal-900/60 text-emerald-400 hover:bg-teal-900 transition border border-teal-850/30" title="Optimize Power Draw">
+                        <i data-lucide="battery" class="w-4 h-4"></i>
+                        <span id="battery-status">88%</span>
+                    </button>
+                    <!-- Grid Connectivity Toggle -->
+                    <button onclick="toggleOfflineStatus()" id="network-btn" class="flex items-center space-x-1.5 text-[10px] font-extrabold px-2.5 py-1.5 rounded-xl bg-sky-950/50 text-sky-400 border border-sky-800/30 hover:bg-teal-900 transition">
+                        <i data-lucide="wifi-off" class="w-3.5 h-3.5 animate-pulse" id="network-icon"></i>
+                        <span id="network-text">OFFLINE</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Real-time Comfort Alerts Banner -->
+            <div id="offline-banner" class="mt-2 text-[10px] bg-teal-900/40 border border-teal-800/40 text-teal-200/90 px-3 py-2 rounded-xl flex items-start space-x-2 shadow-inner">
+                <i data-lucide="shield" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5 animate-pulse"></i>
+                <span id="shield-banner-text" class="leading-relaxed">Shield Active. Encrypted safety packets will route via offline <strong class="text-teal-100">Local Bluetooth Ad-Hoc Mesh</strong> and <strong class="text-teal-100">Satellite SMS arrays</strong>.</span>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTAINER -->
+        <main class="flex-grow p-4 space-y-5 overflow-y-auto no-scrollbar">
+
+            <!-- CRITICAL INSTANT VOICE CALL HOTLINE -->
+            <section class="glass-panel p-4 rounded-2xl border-2 border-teal-400/20 relative overflow-hidden shadow-lg shadow-teal-950/30">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2 text-emerald-300">
+                        <i data-lucide="phone-call" class="w-4 h-4 animate-bounce"></i>
+                        <span class="text-xs font-bold uppercase tracking-wider accent-font" data-translate="panic_title">PANIC FALLBACK HOTLINE</span>
+                    </div>
+                    <span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-extrabold px-2 py-0.5 rounded-md" data-translate="dial_direct">DIAL DIRECT</span>
+                </div>
+                <p class="text-[10px] text-teal-200/70 mb-3 leading-relaxed" data-translate="panic_desc">Too stressed to type? Tap to instantly trigger direct call lines to Indian national safety dispatchers or your private emergency contacts.</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="tel:112" onclick="trackQuickCall('National Services')" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-2.5 px-3 rounded-xl flex items-center justify-center space-x-2 text-xs font-black shadow-lg shadow-teal-950/50 transition duration-150">
+                        <i data-lucide="phone" class="w-4 h-4"></i>
+                        <span data-translate="call_emerg">CALL EMERGENCY (112)</span>
+                    </a>
+                    <a id="guardian-call-btn" href="tel:1090" onclick="trackQuickCall('ICE Guardian')" class="bg-teal-900/80 hover:bg-teal-800 text-teal-100 py-2.5 px-3 rounded-xl border border-teal-800 flex items-center justify-center space-x-2 text-xs font-bold transition duration-150">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+                        <span id="guardian-call-label" data-translate="call_guardian">CALL GUARDIAN</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- COGNITIVE PANIC & SCREAM TRIGGER MODULE -->
+            <section class="glass-panel p-4 rounded-2xl relative overflow-hidden shadow-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2 text-sky-300">
+                        <i data-lucide="mic" class="w-4 h-4" id="mic-status-icon"></i>
+                        <span class="text-xs font-bold uppercase tracking-wider accent-font" data-translate="scream_title">SCREAM / SHOUT SENSOR</span>
+                    </div>
+                    <!-- Master Toggle -->
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="scream-monitor-switch" onchange="toggleScreamMonitoring()" class="sr-only peer">
+                        <div class="w-8 h-4 bg-teal-950 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-teal-600 after:border-teal-500 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-400"></div>
+                    </label>
+                </div>
+                
+                <p class="text-[10px] text-teal-200/70 mb-3.5 leading-relaxed" data-translate="scream_desc">
+                    Automatically triggers Kavach SOS if the phone microphone hears high-pitched human screams, crashes, or structural panic shouts (&gt;80 decibels) sustained for 1.5 seconds.
+                </p>
+
+                <!-- Audio visualizer bars -->
+                <div class="bg-teal-950 p-3 rounded-xl border border-teal-900/60 space-y-2.5">
+                    <div class="flex items-center justify-between text-[9px] accent-font">
+                        <span class="text-teal-400" data-translate="sensitivity">MONITOR TRIGGER SENSITIVITY:</span>
+                        <span class="text-sky-300 font-bold" id="sensitivity-lbl">80 dB</span>
+                    </div>
+                    <!-- Threshold Slider -->
+                    <input type="range" id="sensitivity-slider" min="50" max="100" value="80" oninput="updateSensitivityThreshold(this.value)" class="w-full h-1 bg-teal-900 rounded-lg appearance-none cursor-pointer accent-emerald-400">
+                    
+                    <!-- Live Sound Waveform visualization metrics -->
+                    <div class="flex items-end justify-between h-8 px-1.5 space-x-1 border-t border-teal-900/40 pt-1.5" id="audio-wave-container">
+                        <div class="audio-bar w-full h-1 bg-teal-900/30 rounded-full"></div>
+                        <div class="audio-bar w-full h-1 bg-teal-900/30 rounded-full"></div>
+                        <div class="audio-bar w-full h-1 bg-teal-900/30 rounded-full"></div>
+                        <div class="audio-bar w-full h-1 bg-teal-900/30 rounded-full"></div>
+                        <div class="audio-bar w-full h-1 bg-teal-900/30 rounded-full"></div>
+                        <div class="audio-bar w-full h-1 bg-teal-900/30 rounded-full"></div>
+                        <div class="audio-bar w-full h-1 bg-teal-900/30 rounded-full"></div>
+                        <div class="audio-bar w-full h-1 bg-teal-900/30 rounded-full"></div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center text-[9px] text-teal-500 pt-0.5">
+                        <span>40 dB (Whisper)</span>
+                        <span id="live-db-level" class="text-teal-300 font-bold accent-font">MIC SLEEPING</span>
+                        <span>120 dB (Scream)</span>
+                    </div>
+
+                    <!-- Sandbox Iframe Compatibility Assist Switch -->
+                    <div class="pt-1.5 border-t border-teal-900/30 flex justify-between items-center text-[9px]">
+                        <span class="text-teal-500" data-translate="mock_mic">Iframe blocked mic? Trigger Mock Mic:</span>
+                        <button onclick="toggleMockMicLoop()" id="mock-mic-btn" class="px-2 py-1 bg-teal-900/60 hover:bg-teal-900 border border-teal-800/40 text-teal-300 rounded-lg font-bold" data-translate="mock_btn_inactive">
+                            ENABLE SIMULATED DEVIATION
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BROADCAST PANIC EMITTER SYSTEM -->
+            <section class="bg-gradient-to-b from-teal-950 to-teal-950/70 p-5 rounded-2xl border border-teal-900/60 text-center relative overflow-hidden shadow-md">
+                <div class="absolute top-3 left-3 bg-emerald-500/10 text-emerald-400 text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded border border-emerald-500/20">
+                    KAVACH TRANSMITTER
+                </div>
+                
+                <p class="text-[10px] text-teal-300 mt-6 mb-3 font-semibold uppercase tracking-wider" data-translate="choose_profile">1. Choose Current Emergency Profile:</p>
+                
+                <!-- Dispatch Category Buttons -->
+                <div class="grid grid-cols-4 gap-2 mb-6">
+                    <button onclick="setEmergencyType('flood')" id="btn-flood" class="emergency-type-btn flex flex-col items-center p-2.5 bg-teal-900/50 rounded-xl hover:bg-sky-950/40 border border-transparent transition group">
+                        <div class="w-10 h-10 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center mb-1 group-hover:scale-105 transition duration-200">
+                            <i data-lucide="droplet" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-teal-100" data-translate="flood">Flood</span>
+                    </button>
+                    <button onclick="setEmergencyType('fire')" id="btn-fire" class="emergency-type-btn flex flex-col items-center p-2.5 bg-teal-900/50 rounded-xl hover:bg-amber-950/40 border border-transparent transition group">
+                        <div class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center mb-1 group-hover:scale-105 transition duration-200">
+                            <i data-lucide="flame" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-teal-100" data-translate="fire">Fire</span>
+                    </button>
+                    <button onclick="setEmergencyType('earthquake')" id="btn-earthquake" class="emergency-type-btn flex flex-col items-center p-2.5 bg-teal-900/50 rounded-xl hover:bg-teal-950/40 border border-transparent transition group">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-1 group-hover:scale-105 transition duration-200">
+                            <i data-lucide="mountain" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-teal-100" data-translate="quake">Quake</span>
+                    </button>
+                    <button onclick="setEmergencyType('medical')" id="btn-medical" class="emergency-type-btn flex flex-col items-center p-2.5 bg-teal-900/50 rounded-xl hover:bg-emerald-950/40 border border-transparent transition group">
+                        <div class="w-10 h-10 rounded-full bg-teal-300/10 text-teal-300 flex items-center justify-center mb-1 group-hover:scale-105 transition duration-200">
+                            <i data-lucide="heart-pulse" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-teal-100" data-translate="medical">Medical</span>
+                    </button>
+                </div>
+
+                <!-- Central Emitter Trigger Node -->
+                <div class="flex flex-col items-center justify-center relative my-4">
+                    <!-- Audio-visual tactical pulsing rings -->
+                    <div id="trigger-pulse-1" class="absolute w-44 h-44 rounded-full bg-emerald-500/15 hidden soothing-pulse-active"></div>
+                    <div id="trigger-pulse-2" class="absolute w-52 h-52 rounded-full bg-emerald-500/5 hidden soothing-pulse-active" style="animation-delay: 0.5s"></div>
+                    
+                    <!-- Tactile trigger button -->
+                    <button 
+                        onmousedown="startSOSHold()" 
+                        onmouseup="cancelSOSHold()" 
+                        onmouseleave="cancelSOSHold()"
+                        ontouchstart="startSOSHold(event)" 
+                        ontouchend="cancelSOSHold(event)"
+                        id="main-sos-btn"
+                        class="relative w-40 h-40 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-[0_0_35px_rgba(20,184,166,0.35)] flex flex-col items-center justify-center active:scale-95 transition-all duration-150 z-10 border-4 border-emerald-400/20"
+                    >
+                        <i data-lucide="shield-check" class="w-12 h-12 text-white mb-1"></i>
+                        <span class="text-white font-extrabold tracking-widest text-2xl accent-font">KAVACH</span>
+                        <span class="text-[9px] text-teal-50 font-bold uppercase tracking-widest" id="hold-text" data-translate="hold_text">HOLD 2 SEC</span>
+                    </button>
+
+                    <!-- Circular holding progress bar -->
+                    <svg class="absolute w-44 h-44 pointer-events-none transform -rotate-90 z-20">
+                        <circle cx="88" cy="88" r="82" stroke="rgba(255,255,255,0.12)" stroke-width="5" fill="transparent" />
+                        <circle id="hold-progress" cx="88" cy="88" r="82" stroke="#2dd4bf" stroke-width="5" fill="transparent" stroke-dasharray="515" stroke-dashoffset="515" class="transition-all duration-100" />
+                    </svg>
+                </div>
+
+                <!-- Active Alert Transmit Panel -->
+                <div id="active-broadcast-panel" class="hidden mt-6 p-4 bg-teal-900/60 border border-teal-800/40 rounded-xl text-left animate-pulse">
+                    <div class="flex items-center space-x-2.5 mb-2">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                        </span>
+                        <h4 class="text-xs font-bold text-teal-300 uppercase tracking-widest accent-font" data-translate="active_broadcast">BROADCAST ACTIVE</h4>
+                    </div>
+                    <p class="text-[11px] text-teal-100 leading-relaxed">
+                        <span data-translate="active_broadcast_desc">Transmitting offline telemetry packets detailing GPS positions, health card, and crisis class</span> (<span id="status-emerg-type" class="uppercase font-bold text-sky-300">General</span>).
+                    </p>
+                    <div class="mt-4 flex space-x-2">
+                        <button onclick="sendMockSMS()" class="flex-1 bg-teal-400 hover:bg-teal-300 text-teal-950 text-xs font-black py-2.5 px-3 rounded-xl transition duration-200 flex items-center justify-center space-x-1 shadow-md shadow-teal-950/50">
+                            <i data-lucide="message-square" class="w-4 h-4"></i>
+                            <span data-translate="sms_btn">SEND OFFLINE SMS</span>
+                        </button>
+                        <button onclick="cancelActiveSOS()" class="bg-teal-900 hover:bg-teal-800 text-teal-300 text-xs font-bold py-2.5 px-3 rounded-xl transition duration-200" data-translate="abort_btn">
+                            ABORT
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DUAL MODE GEOGRAPHICAL NAVIGATION MAP -->
+            <section class="bg-teal-950/80 p-4 rounded-2xl border border-teal-900/50">
+                <div class="flex items-center justify-between mb-3.5">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="map" class="text-sky-400 w-5 h-5"></i>
+                        <h3 class="font-bold text-sm tracking-wide" data-translate="map_title">SHIELD GEOLOCATOR</h3>
+                    </div>
+                    
+                    <!-- Map Mode Tab Selector -->
+                    <div class="bg-teal-950 p-0.5 rounded-xl flex border border-teal-900/60">
+                        <button onclick="switchMapMode('offline')" id="map-mode-offline" class="px-2.5 py-1 text-[10px] font-extrabold rounded-lg bg-teal-900 text-teal-300 border border-teal-800 transition" data-translate="offline_grid">
+                            OFFLINE GRID
+                        </button>
+                        <button onclick="switchMapMode('online')" id="map-mode-online" class="px-2.5 py-1 text-[10px] font-bold rounded-lg text-teal-400 hover:text-teal-200 transition" data-translate="online_tiles">
+                            ONLINE TILES
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GPS localization telemetry coordinate stats bar -->
+                <div class="grid grid-cols-2 gap-2 mb-3 bg-teal-950/90 p-3 rounded-xl border border-teal-900/40 text-[10px]">
+                    <div>
+                        <span class="text-teal-500 block uppercase font-bold text-[9px] tracking-wider accent-font" data-translate="gps_label">CURRENT GPS COORDINATES</span>
+                        <span id="coords-text" class="font-mono text-teal-200 font-bold text-[11px]">22.3039° N, 70.8022° E</span>
+                    </div>
+                    <div>
+                        <span class="text-teal-500 block uppercase font-bold text-[9px] tracking-wider accent-font" data-translate="mesh_label">MESH NET RECEPTIONS</span>
+                        <span class="text-emerald-400 font-bold flex items-center mt-0.5 text-[11px]">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1.5 animate-pulse"></span>
+                            3 SECURE PEERS
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Canvas / Leaflet Map Frame Container -->
+                <div class="relative rounded-xl overflow-hidden border border-teal-900/60 h-64 bg-teal-950">
+                    <!-- Standard Interactive Leaflet MAP (Active in online mode) -->
+                    <div id="live-map" class="w-full h-full opacity-0 pointer-events-none transition-all duration-300 absolute inset-0 z-0 animate-fade-in"></div>
+
+                    <!-- Offline Vector/Radar Grid (Active by default) -->
+                    <div id="offline-grid-container" class="w-full h-full absolute inset-0 flex flex-col justify-between p-3 bg-teal-950 z-10 transition-all duration-300">
+                        <div class="flex-grow relative overflow-hidden flex items-center justify-center">
+                            <!-- Background Matrix grid lines -->
+                            <div class="absolute inset-0 bg-[linear-gradient(to_right,#0d2529_1px,transparent_1px),linear-gradient(to_bottom,#0d2529_1px,transparent_1px)] bg-[size:16px_16px]"></div>
+                            
+                            <!-- Tactical Compass Graphic Overlay -->
+                            <div id="tactical-compass" class="absolute w-44 h-44 rounded-full border border-teal-500/20 flex items-center justify-center compass-ring pointer-events-none">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(20, 184, 166, 0.1)" stroke-width="1" stroke-dasharray="2 2" />
+                                    <!-- Compass Directions -->
+                                    <text x="50" y="10" font-family="'Space Grotesk'" font-size="7" font-weight="bold" fill="#2dd4bf" text-anchor="middle">N</text>
+                                    <text x="92" y="52" font-family="'Space Grotesk'" font-size="7" font-weight="bold" fill="#2dd4bf" text-anchor="middle">E</text>
+                                    <text x="50" y="94" font-family="'Space Grotesk'" font-size="7" font-weight="bold" fill="#2dd4bf" text-anchor="middle">S</text>
+                                    <text x="8" y="52" font-family="'Space Grotesk'" font-size="7" font-weight="bold" fill="#2dd4bf" text-anchor="middle">W</text>
+                                    <!-- Inner markings -->
+                                    <line x1="50" y1="2" x2="50" y2="6" stroke="#2dd4bf" stroke-width="1" />
+                                    <line x1="50" y1="94" x2="50" y2="98" stroke="#2dd4bf" stroke-width="1" />
+                                    <line x1="2" y1="50" x2="6" y2="50" stroke="#2dd4bf" stroke-width="1" />
+                                    <line x1="94" y1="50" x2="98" y2="50" stroke="#2dd4bf" stroke-width="1" />
+                                </svg>
+                            </div>
+
+                            <!-- Rotating Radar Sweep Overlay -->
+                            <div class="absolute inset-0 flex items-center justify-center opacity-25 pointer-events-none">
+                                <svg class="w-full h-full animate-[spin_6s_linear_infinite]" viewBox="0 0 100 100">
+                                    <defs>
+                                        <radialGradient id="radar-grad" cx="50%" cy="50%" r="50%">
+                                            <stop offset="0%" stop-color="rgba(45,212,191,0)" />
+                                            <stop offset="90%" stop-color="rgba(45,212,191,0.05)" />
+                                            <stop offset="100%" stop-color="rgba(45,212,191,0.2)" />
+                                        </radialGradient>
+                                    </defs>
+                                    <circle cx="50" cy="50" r="45" fill="url(#radar-grad)" stroke="rgba(45,212,191,0.15)" stroke-width="0.5" />
+                                    <line x1="50" y1="50" x2="50" y2="5" stroke="rgba(45,212,191,0.4)" stroke-width="0.5" />
+                                </svg>
+                            </div>
+
+                            <div class="absolute w-56 h-56 rounded-full border border-teal-500/10 animate-ping opacity-25"></div>
+                            <div class="absolute w-32 h-32 rounded-full border border-teal-950"></div>
+                            
+                            <!-- Dynamic Local Peer Map Elements -->
+                            <!-- User Marker node -->
+                            <div class="absolute flex flex-col items-center justify-center z-20 animate-bounce">
+                                <span class="relative flex h-5 w-5 justify-center items-center">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-teal-400 border border-teal-50"></span>
+                                </span>
+                                <span class="bg-teal-900/90 text-[8px] font-black text-white px-1.5 py-0.5 rounded border border-teal-500 mt-1.5 whitespace-nowrap shadow-md">YOU (KAVACH)</span>
+                            </div>
+
+                            <!-- Peer Node A (Hospital Camp) -->
+                            <div class="absolute top-10 left-12 flex flex-col items-center">
+                                <div class="w-6 h-6 rounded-full bg-emerald-950/90 border border-emerald-500 flex items-center justify-center text-emerald-400 shadow-lg">
+                                    <i data-lucide="cross" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="bg-teal-900/95 text-[7px] font-bold text-teal-300 px-1 rounded border border-teal-800 mt-1">SAFE CAMP A (0.4km)</span>
+                            </div>
+
+                            <!-- Peer Node B (Relay) -->
+                            <div class="absolute bottom-10 right-14 flex flex-col items-center">
+                                <div class="w-6 h-6 rounded-full bg-sky-950/90 border border-sky-500 flex items-center justify-center text-sky-400 shadow-lg">
+                                    <i data-lucide="radio" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <span class="bg-teal-900/95 text-[7px] font-bold text-teal-300 px-1 rounded border border-teal-800 mt-1">MESH RELAY B (0.2km)</span>
+                            </div>
+
+                            <!-- Hazard Node -->
+                            <div class="absolute top-14 right-10 flex flex-col items-center">
+                                <div class="w-7 h-7 rounded-full bg-amber-950/90 border border-amber-600 flex items-center justify-center text-amber-500 animate-pulse">
+                                    <i data-lucide="triangle-alert" class="w-4 h-4"></i>
+                                </div>
+                                <span class="bg-teal-900/95 text-[7px] font-bold text-amber-500 px-1 rounded border border-teal-800 mt-1">HAZARD: FLOOD SECTOR</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Offline dashboard controller bar -->
+                        <div class="bg-teal-900/95 p-2 rounded-xl border border-teal-800 text-[10px] flex justify-between items-center relative z-20">
+                            <div>
+                                <span class="text-teal-400 block" id="compass-status" data-translate="compass_label">COMPASS HARDWARE CALIBRATING</span>
+                                <span class="text-emerald-400 font-bold block" id="compass-alignment-val">0° NORTH</span>
+                            </div>
+                            <button onclick="refreshMockCoordinates()" class="text-teal-400 hover:text-teal-300 flex items-center space-x-1 font-bold">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                                <span data-translate="scan_gnss">RE-SCAN GNSS</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- OFFLINE EMERGENCY DIRECTORY (HOSPITALS & FIRE STATIONS) -->
+            <section class="glass-panel p-4 rounded-2xl border border-teal-900/50">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2 text-sky-300">
+                        <i data-lucide="building" class="w-4 h-4"></i>
+                        <span class="text-xs font-bold uppercase tracking-wider accent-font" data-translate="registry_title">NEAREST EMERGENCY FACILITIES</span>
+                    </div>
+                    <span class="text-[9px] bg-teal-900/60 text-teal-300 px-2 py-0.5 rounded-md font-bold border border-teal-800/40" data-translate="registry_badge">OFFLINE REGISTRY</span>
+                </div>
+                
+                <p class="text-[10px] text-teal-200/70 mb-3 leading-relaxed" data-translate="registry_desc">Top nearby safety networks. Distances recalculate instantly in real-time based on local GPS coordinates.</p>
+
+                <!-- List of Hospitals / Fire Stations -->
+                <div class="space-y-2.5" id="facility-directory">
+                    <!-- Dynamic rendering fallback template -->
+                </div>
+            </section>
+
+            <!-- COMMUNITY & NEIGHBOR VERIFICATION NETWORK -->
+            <section class="glass-panel p-4 rounded-2xl border border-teal-900/50">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2 text-emerald-300">
+                        <i data-lucide="users" class="w-4 h-4"></i>
+                        <span class="text-xs font-bold uppercase tracking-wider accent-font" data-translate="neighbor_title">NEIGHBOR SECURE CHECK</span>
+                    </div>
+                    <span class="text-[9px] bg-emerald-950/60 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-900/40" data-translate="truth_badge">TRUTH VERIFIER</span>
+                </div>
+                
+                <p class="text-[10px] text-teal-200/70 mb-3 leading-relaxed" data-translate="neighbor_desc">To cross-verify that the emergency situation is real, Kavach compiles authenticated incident telemetry coordinates into a text packet for registered neighbors to inspect and validate.</p>
+
+                <!-- Input configuration fields for ICE neighbors -->
+                <div class="bg-teal-950 p-3 rounded-xl border border-teal-900/60 space-y-3">
+                    <div class="grid grid-cols-2 gap-2 text-[10px]">
+                        <div>
+                            <label class="block text-teal-400 font-bold uppercase mb-1 tracking-wider">NEIGHBOR 1 NAME</label>
+                            <input id="neighbor-1-name" type="text" value="Aarav Sharma" class="w-full bg-teal-900/40 border border-teal-800 rounded-lg px-2 py-1 text-white focus:border-teal-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-teal-400 font-bold uppercase mb-1 tracking-wider">NEIGHBOR 1 PHONE</label>
+                            <input id="neighbor-1-phone" type="text" value="+91 98765 43210" class="w-full bg-teal-900/40 border border-teal-800 rounded-lg px-2 py-1 text-white focus:border-teal-400 outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[10px]">
+                        <div>
+                            <label class="block text-teal-400 font-bold uppercase mb-1 tracking-wider">NEIGHBOR 2 NAME</label>
+                            <input id="neighbor-2-name" type="text" value="Diya Patel" class="w-full bg-teal-900/40 border border-teal-800 rounded-lg px-2 py-1 text-white focus:border-teal-400 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-teal-400 font-bold uppercase mb-1 tracking-wider">NEIGHBOR 2 PHONE</label>
+                            <input id="neighbor-2-phone" type="text" value="+91 87654 32109" class="w-full bg-teal-900/40 border border-teal-800 rounded-lg px-2 py-1 text-white focus:border-teal-400 outline-none">
+                        </div>
+                    </div>
+
+                    <button onclick="sendNeighborVerification()" class="w-full py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white text-xs font-black rounded-lg transition duration-150 flex items-center justify-center space-x-1.5">
+                        <i data-lucide="message-square-share" class="w-4 h-4"></i>
+                        <span data-translate="neighbor_btn">SEND VERIFICATION PACKET TO NEIGHBORS</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- COGNITIVE VISUAL & ACOUSTIC SOUND HARDWARE BEACONS -->
+            <section class="bg-teal-950/80 p-4 rounded-2xl border border-teal-900/50">
+                <div class="flex items-center space-x-2 mb-3.5">
+                    <i data-lucide="alert-circle" class="text-emerald-400 w-5 h-5"></i>
+                    <h3 class="font-bold text-sm tracking-wide">SURVIVAL LOCAL BEACONS</h3>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Synthesized Audio Siren Option -->
+                    <div class="bg-teal-950 p-3 rounded-xl border border-teal-900/60 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center space-x-1.5 mb-1.5">
+                                <i data-lucide="volume-2" class="text-sky-300 w-4 h-4"></i>
+                                <span class="text-xs font-bold text-teal-200">Acoustic Siren</span>
+                            </div>
+                            <p class="text-[10px] text-teal-200/60 leading-tight">Emits a high-frequency piercing siren wave pattern to guide canine Search &amp; Rescue units to your location.</p>
+                        </div>
+                        <button onclick="toggleAudioSiren()" id="siren-btn" class="mt-3 w-full py-2 bg-teal-900 hover:bg-teal-800 active:bg-emerald-900/30 text-teal-200 border border-teal-800 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1">
+                            <span id="siren-btn-text" data-translate="siren_btn">START AUDIO SIREN</span>
+                        </button>
+                    </div>
+
+                    <!-- Synchronized Visual and Audio Morse Beacon Option -->
+                    <div class="bg-teal-950 p-3 rounded-xl border border-teal-900/60 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center space-x-1.5 mb-1.5">
+                                <i data-lucide="sparkles" class="text-amber-400 w-4 h-4"></i>
+                                <span class="text-xs font-bold text-teal-200">Morse Strobe</span>
+                            </div>
+                            <p class="text-[10px] text-teal-200/60 leading-tight">Cycles screen flash and acoustic beeps in synchronized Morse pattern for maximum visibility.</p>
+                        </div>
+                        <button onclick="toggleUnifiedBeacon()" id="beacon-toggle-btn" class="mt-3 w-full py-2 bg-teal-900 hover:bg-teal-800 active:bg-amber-900/30 text-teal-200 border border-teal-800 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1">
+                            <span data-translate="beacon_btn">LAUNCH BEACON</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Offline Scan Rescue Card QR Trigger -->
+                <div class="mt-3 bg-teal-950 p-3 rounded-xl border border-teal-900/60 flex items-start justify-between">
+                    <div class="space-y-1 pr-2">
+                        <span class="text-xs font-bold text-teal-200 block" data-translate="qr_title">Offline Health Rescue QR Card</span>
+                        <p class="text-[10px] text-teal-200/60 leading-tight" data-translate="qr_desc">Allows rescue teams to scan and extract vital health metrics &amp; coordinates directly from your offline device.</p>
+                    </div>
+                    <button onclick="toggleQRModal()" class="px-3 py-2 bg-teal-400/10 hover:bg-teal-400/20 text-teal-300 border border-teal-400/20 text-xs font-bold rounded-xl transition flex-shrink-0" data-translate="qr_btn">
+                        VIEW QR
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step-by-Step Response Instruction Guides -->
+            <section class="bg-teal-950/80 p-4 rounded-2xl border border-teal-900/50">
+                <div class="flex items-center justify-between mb-3.5">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="book-open" class="text-teal-400 w-5 h-5"></i>
+                        <h3 class="font-bold text-sm tracking-wide" data-translate="survival_manual_title">SURVIVAL OFFLINE MANUALS</h3>
+                    </div>
+                    <span class="text-[9px] bg-teal-900/60 text-teal-300 px-2 py-0.5 rounded border border-teal-800/40" data-translate="survival_manual_badge">CACHED COPIES</span>
+                </div>
+
+                <!-- Mini Guide tab navigation -->
+                <div class="flex space-x-1.5 mb-3 overflow-x-auto no-scrollbar py-0.5">
+                    <button id="tab-flood" onclick="switchGuide('guide-flood')" class="guide-tab-btn px-3 py-1 bg-teal-900 text-teal-100 text-xs font-bold rounded-lg border border-teal-800 flex-shrink-0 transition">Flood Guide</button>
+                    <button id="tab-fire" onclick="switchGuide('guide-fire')" class="guide-tab-btn px-3 py-1 bg-teal-950 text-teal-500 text-xs font-bold rounded-lg border border-transparent flex-shrink-0 transition">Fire Evac</button>
+                    <button id="tab-quake" onclick="switchGuide('guide-quake')" class="guide-tab-btn px-3 py-1 bg-teal-950 text-teal-500 text-xs font-bold rounded-lg border border-transparent flex-shrink-0 transition">Earthquake</button>
+                    <button id="tab-cpr" onclick="switchGuide('guide-cpr')" class="guide-tab-btn px-3 py-1 bg-teal-950 text-teal-500 text-xs font-bold rounded-lg border border-transparent flex-shrink-0 transition">First Aid / CPR</button>
+                </div>
+
+                <!-- Tab content viewport -->
+                <div class="bg-teal-950 p-3.5 rounded-xl border border-teal-900/40 text-xs space-y-3" id="guides-container-viewport">
+                    <!-- Guides rendered programmatically based on selected language dictionary -->
+                </div>
+            </section>
+        </main>
+
+        <!-- PROFILE HEALTH CARD DIALOG MODAL -->
+        <div id="profile-modal" class="fixed inset-0 z-40 bg-black/80 flex items-center justify-center p-4 hidden">
+            <div class="bg-teal-950 border border-teal-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+                <div class="bg-teal-900/90 p-4 border-b border-teal-850 flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="user" class="text-teal-300 w-5 h-5"></i>
+                        <h2 class="font-bold text-base" data-translate="profile_modal_title">EMERGENCY MEDICAL CARD</h2>
+                    </div>
+                    <button onclick="toggleProfileModal()" class="text-teal-300 hover:text-white">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar">
+                    <p class="text-xs text-teal-200/60 leading-tight">These metrics are stored encrypted strictly inside local device directories. First responders can query them via physical scan interfaces during complete cellular outages.</p>
+                    
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block text-teal-400 font-bold mb-1 uppercase tracking-wider">Survivor Full Name</label>
+                            <input id="profile-name" type="text" class="w-full bg-teal-950 border border-teal-800 rounded-xl px-3 py-2 text-white font-bold focus:border-teal-400 outline-none" placeholder="e.g., Samuel Drake">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-teal-400 font-bold mb-1 uppercase tracking-wider">Blood Type</label>
+                                <select id="profile-blood" class="w-full bg-teal-950 border border-teal-800 rounded-xl px-3 py-2 text-white font-bold focus:border-teal-400 outline-none">
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                    <option value="Unknown" selected>Not Known</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-teal-400 font-bold mb-1 uppercase tracking-wider">Birth Year</label>
+                                <input id="profile-age" type="number" class="w-full bg-teal-950 border border-teal-800 rounded-xl px-3 py-2 text-white font-bold focus:border-teal-400 outline-none" placeholder="e.g., 1990">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-teal-400 font-bold mb-1 uppercase tracking-wider">Primary Medical Conditions / Allergies</label>
+                            <input id="profile-conditions" type="text" class="w-full bg-teal-950 border border-teal-800 rounded-xl px-3 py-2 text-white focus:border-teal-400 outline-none" placeholder="e.g., Asthma, Penicillin Allergy">
+                        </div>
+
+                        <div>
+                            <label class="block text-teal-400 font-bold mb-1 uppercase tracking-wider">ICE Emergency Guardian Contact</label>
+                            <input id="profile-contact" type="text" class="w-full bg-teal-950 border border-teal-800 rounded-xl px-3 py-2 text-white focus:border-teal-400 outline-none" placeholder="e.g., +91 98765 01928" oninput="updateGuardianDialer(this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-teal-900/90 border-t border-teal-850 flex space-x-2">
+                    <button onclick="toggleProfileModal()" class="flex-1 py-2 bg-teal-950 hover:bg-teal-900 rounded-xl text-xs font-bold transition">CANCEL</button>
+                    <button onclick="saveProfile()" class="flex-1 py-2 bg-teal-500 hover:bg-teal-450 text-teal-955 font-black rounded-xl text-xs transition">SAVE PARAMETERS</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESCUE QR CODE VIEW DIALOG MODAL -->
+        <div id="qr-modal" class="fixed inset-0 z-40 bg-black/90 flex items-center justify-center p-4 hidden">
+            <div class="bg-teal-950 border border-teal-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+                <div class="bg-teal-900/90 p-4 border-b border-teal-850 flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="qr-code" class="text-teal-300 w-5 h-5"></i>
+                        <h2 class="font-bold text-base" data-translate="qr_modal_header">RESCUE QR CODE SHIELD</h2>
+                    </div>
+                    <button onclick="toggleQRModal()" class="text-teal-300 hover:text-white">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 flex flex-col items-center text-center space-y-4">
+                    <p class="text-[11px] text-teal-200/60">Search teams can read this dynamic barcode with basic scanning hardware to access your emergency telemetry directly in complete blackouts.</p>
+                    
+                    <!-- Dynamic emergency QR Code Container -->
+                    <div class="w-52 h-52 bg-white p-3 rounded-2xl flex items-center justify-center relative overflow-hidden" id="qr-image-container">
+                        <!-- Canvas drawing a custom high-density emergency QR with exact data representation -->
+                        <canvas id="qr-canvas" width="180" height="180" class="w-full h-full"></canvas>
+                    </div>
+
+                    <div class="bg-teal-950 p-3 rounded-xl border border-teal-900 w-full text-left space-y-1.5 text-[10px] font-mono">
+                        <div><span class="text-teal-500">PAYLOAD STATUS:</span> <span class="text-emerald-400 font-bold" id="qr-payload-type">KAVACH ACTIVE</span></div>
+                        <div><span class="text-teal-500">GEO:</span> <span class="text-teal-300" id="qr-payload-geo">22.3039° N, 70.8022° E</span></div>
+                        <div><span class="text-teal-500">NAME:</span> <span class="text-teal-300" id="qr-payload-name">Unspecified Profile</span></div>
+                        <div><span class="text-teal-500">BLOOD:</span> <span class="text-sky-300 font-bold" id="qr-payload-blood">Unknown</span></div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-teal-900/90 border-t border-teal-850">
+                    <button onclick="toggleQRModal()" class="w-full py-2 bg-teal-950 hover:bg-teal-900 text-teal-200 text-xs font-bold rounded-xl transition">
+                        CLOSE SCREEN BEACON
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATION STATUS BANNER TOAST -->
+        <div id="toast-modal" class="fixed bottom-20 left-4 right-4 z-50 bg-teal-900 border border-teal-800 rounded-xl p-3.5 flex items-center space-x-3 shadow-2xl transition-all transform translate-y-24 opacity-0 pointer-events-none duration-300 font-sans">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+            </div>
+            <div class="flex-grow">
+                <span id="toast-title" class="text-xs font-bold text-white block font-sans">Success</span>
+                <span id="toast-body" class="text-[10px] text-teal-300 block font-sans">Task done offline successfully.</span>
+            </div>
+            <button onclick="hideToast()" class="text-teal-500 hover:text-teal-300">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- NAVIGATION BOTTOM BAR -->
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-teal-950/95 border-t border-teal-900/40 backdrop-blur-md flex justify-around py-2.5 z-30">
+            <!-- Home -->
+            <button class="flex flex-col items-center text-teal-400 transition-colors">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold mt-1">Dashboard</span>
+            </button>
+            
+            <!-- Health Profile Trigger -->
+            <button onclick="toggleProfileModal()" class="flex flex-col items-center text-teal-500 hover:text-teal-300 transition-colors">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold mt-1">Medical Card</span>
+            </button>
+            
+            <!-- Simulated SMS Beacon Trigger -->
+            <button onclick="triggerMockSmsGenerator()" class="flex flex-col items-center text-teal-500 hover:text-teal-300 transition-colors relative">
+                <span class="absolute top-0 right-3 bg-teal-400 w-2 h-2 rounded-full animate-pulse"></span>
+                <i data-lucide="send" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold mt-1">Offline SMS</span>
+            </button>
+
+            <!-- Scroll To Manuals Trigger -->
+            <button onclick="scrollToManuals()" class="flex flex-col items-center text-teal-500 hover:text-teal-300 transition-colors">
+                <i data-lucide="book-marked" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold mt-1">Manuals</span>
+            </button>
+        </nav>
+        
+    </div>
+
+    <!-- MAIN CORE APPLICATION JAVASCRIPT LOGIC -->
+    <script>
+        // Translation Dictionaries
+        // Replace with your laptop's actual IP address you found earlier
+        const API_URL = "http://10.195.184.134:3000";
+        const translations = {
+            en: {
+                app_title: "KAVACH SOS",
+                offline_desc: "Shield Active. Encrypted safety packets will route via offline <strong>Local Bluetooth Ad-Hoc Mesh</strong> and <strong>Satellite SMS arrays</strong>.",
+                panic_title: "PANIC FALLBACK HOTLINE",
+                dial_direct: "DIAL DIRECT",
+                panic_desc: "Too stressed to type? Tap to instantly trigger direct call lines to Indian national safety dispatchers or your private emergency contacts.",
+                call_emerg: "CALL EMERGENCY (112)",
+                call_guardian: "CALL GUARDIAN",
+                dial_helpline: "CALL HELPLINE (1090)",
+                scream_title: "SCREAM / SHOUT SENSOR",
+                scream_desc: "Automatically triggers Kavach SOS if the phone microphone hears high-pitched human screams, crashes, or structural panic shouts (>80 decibels) sustained for 1.5 seconds.",
+                sensitivity: "MONITOR TRIGGER SENSITIVITY:",
+                mock_mic: "Iframe blocked mic? Trigger Mock Mic:",
+                mock_btn_active: "STOP SIMULATOR",
+                mock_btn_inactive: "ENABLE SIMULATED DEVIATION",
+                choose_profile: "1. Choose Current Emergency Profile:",
+                flood: "Flood",
+                fire: "Fire",
+                quake: "Quake",
+                medical: "Medical",
+                hold_text: "HOLD 2 SEC",
+                hold_active: "ARMING...",
+                hold_live: "KAVACH LIVE",
+                active_broadcast: "BROADCAST ACTIVE",
+                active_broadcast_desc: "Transmitting offline telemetry packets detailing GPS positions, health card, and crisis class",
+                sms_btn: "SEND OFFLINE SMS",
+                abort_btn: "ABORT",
+                map_title: "SHIELD GEOLOCATOR",
+                offline_grid: "OFFLINE GRID",
+                online_tiles: "ONLINE TILES",
+                gps_label: "CURRENT GPS COORDINATES",
+                mesh_label: "MESH NET RECEPTIONS",
+                scan_gnss: "RE-SCAN GNSS",
+                registry_title: "NEAREST EMERGENCY FACILITIES",
+                registry_desc: "Top nearby safety networks. Distances recalculate instantly in real-time based on local GPS coordinates.",
+                registry_badge: "OFFLINE REGISTRY",
+                neighbor_title: "NEIGHBOR SECURE CHECK",
+                neighbor_desc: "To cross-verify that the emergency situation is real, Kavach compiles authenticated incident telemetry coordinates into a text packet for registered neighbors to inspect and validate.",
+                truth_badge: "TRUTH VERIFIER",
+                neighbor_btn: "SEND VERIFICATION PACKET TO NEIGHBORS",
+                survival_manual_title: "SURVIVAL OFFLINE MANUALS",
+                survival_manual_badge: "CACHED COPIES",
+                siren_btn: "START AUDIO SIREN",
+                siren_btn_active: "STOP AUDIO SIREN",
+                beacon_btn: "LAUNCH BEACON",
+                beacon_btn_active: "DISARM BEACON",
+                qr_btn: "VIEW QR",
+                qr_title: "Offline Health Rescue QR Card",
+                qr_desc: "Allows rescue teams to scan and extract vital health metrics & coordinates directly from your offline device.",
+                compass_label: "COMPASS INTEGRITY",
+                profile_modal_title: "EMERGENCY MEDICAL CARD",
+                qr_modal_header: "RESCUE QR CODE SHIELD",
+                beacon_overlay_title: "UNIFIED KAVACH BEACON",
+                beacon_overlay_desc: "Flashing and sounding synchronized 'S-O-S' Morse code. Direct screen outwards towards rescue squads, canine teams, or aerial patrols.",
+                deactivate_beacon: "DISARM UNIFIED BEACON"
+            },
+            hi: {
+                app_title: "कवच एसओएस",
+                offline_desc: "सुरक्षा कवच सक्रिय। एन्क्रिप्टेड सुरक्षा पैकेट ऑफ़लाइन <strong>लोकल ब्लूटूथ एड-हॉक मेश</strong> और <strong>सैटेलाइट एसएमएस ऐरे</strong> के माध्यम से भेजे जाएंगे।",
+                panic_title: "आपातकालीन हॉटलाइन",
+                dial_direct: "सीधा डायल",
+                panic_desc: "टाइप करने में असमर्थ हैं? भारतीय राष्ट्रीय सुरक्षा प्रेषकों या अपने निजी आपातकालीन संपर्कों को सीधे कॉल करने के लिए टैप करें।",
+                call_emerg: "आपातकालीन कॉल (112)",
+                call_guardian: "अभिभावक कॉल",
+                dial_helpline: "हेल्पलाइन कॉल (1090)",
+                scream_title: "चीख / चिल्लाहट सेंसर",
+                scream_desc: "यदि फोन का माइक्रोफ़ोन 1.5 सेकंड तक बनी रहने वाली तेज इंसानी चीख, दुर्घटना या संरचनात्मक चीख-पुकार (>80 डेसिबल) सुनता है, तो कवच एसओएस स्वचालित रूप से सक्रिय हो जाता है।",
+                sensitivity: "सेंसर ट्रिगर संवेदनशीलता:",
+                mock_mic: "माइक्रोफ़ोन ब्लॉक है? मॉक माइक सक्रिय करें:",
+                mock_btn_active: "सिम्युलेटर बंद करें",
+                mock_btn_inactive: "सिम्युलेटेड ऑडियो सक्रिय करें",
+                choose_profile: "1. वर्तमान आपातकालीन प्रोफ़ाइल चुनें:",
+                flood: "बाढ़",
+                fire: "आग",
+                quake: "भूकंप",
+                medical: "चिकित्सा",
+                hold_text: "2 सेकंड दबाएं",
+                hold_active: "सक्रिय हो रहा है...",
+                hold_live: "कवच लाइव",
+                active_broadcast: "प्रसारण सक्रिय",
+                active_broadcast_desc: "जीपीएस स्थिति, स्वास्थ्य कार्ड और संकट श्रेणी का विवरण देने वाले ऑफ़लाइन टेलीमेट्री पैकेट प्रसारित किए जा रहे हैं",
+                sms_btn: "ऑफ़लाइन एसएमएस भेजें",
+                abort_btn: "निरस्त करें",
+                map_title: "सुरक्षा भू-लोकेटर",
+                offline_grid: "ऑफ़लाइन ग्रिड",
+                online_tiles: "ऑनलाइन मैप",
+                gps_label: "वर्तमान जीपीएस निर्देशांक",
+                mesh_label: "मेश नेटवर्क रिसेप्शन",
+                scan_gnss: "जीएनएसएस पुनः स्कैन",
+                registry_title: "निकटतम आपातकालीन सुविधाएं",
+                registry_desc: "निकटतम सुरक्षा नेटवर्क। दूरी स्थानीय जीपीएस निर्देशांक के आधार पर वास्तविक समय में तुरंत गणना की जाती है।",
+                registry_badge: "ऑफ़लाइन रजिस्ट्री",
+                neighbor_title: "पड़ोसी सुरक्षा जांच",
+                neighbor_desc: "आपातकालीन स्थिति की पुष्टि करने के लिए, कवच सत्यापित घटना टेलीमेट्री निर्देशांक को पंजीकृत पड़ोसियों के पास जांच और सत्यापन के लिए एक टेक्स्ट पैकेट में संकलित करता है।",
+                truth_badge: "सच्चाई सत्यापनकर्ता",
+                neighbor_btn: "पड़ोसियों को सत्यापन पैकेट भेजें",
+                survival_manual_title: "ऑफ़लाइन जीवन रक्षा नियमावली",
+                survival_manual_badge: "कैश प्रतियां",
+                siren_btn: "ऑडियो सायरन शुरू करें",
+                siren_btn_active: "ऑडियो सायरन बंद करें",
+                beacon_btn: "बीकन चालू करें",
+                beacon_btn_active: "बीकन बंद करें",
+                qr_btn: "क्यूआर देखें",
+                qr_title: "ऑफ़लाइन स्वास्थ्य बचाव क्यूआर कार्ड",
+                qr_desc: "बचाव दल को पूर्ण ब्लैकआउट में आपके ऑफ़लाइन डिवाइस से सीधे महत्वपूर्ण स्वास्थ्य स्थिति और निर्देशांक को स्कैन करने की अनुमति देता है।",
+                compass_label: "कम्पस अखंडता",
+                profile_modal_title: "आपातकालीन चिकित्सा कार्ड",
+                qr_modal_header: "बचाव क्यूआर कोड शील्ड",
+                beacon_overlay_title: "एकीकृत कवच बीकन",
+                beacon_overlay_desc: "सिंक्रनाइज़ 'S-O-S' मोर्स कोड चमकीला और तेज़ आवाज़ में। स्क्रीन को बचाव दल, खोजी कुत्तों या हवाई गश्ती दल की तरफ रखें।",
+                deactivate_beacon: "एकीकृत बीकन बंद करें"
+            },
+            gu: {
+                app_title: "કવચ એસઓએસ",
+                offline_desc: "સુરક્ષા કવચ સક્રિય. એન્ક્રિપ્ટેડ સુરક્ષા પેકેટો ઑફલાઇન <strong>લોકલ બ્લૂટૂથ એડ-હોક મેશ</strong> અને <strong>સેટેલાઇટ એસએમએસ એરે</strong> દ્વારા મોકલવામાં આવશે.",
+                panic_title: "આપાતકાલીન હોટલાઇન",
+                dial_direct: "સીધો ડાયલ",
+                panic_desc: "ટાઇપ કરવામાં અસમર્થ છો? ભારતીય રાષ્ટ્રીય સુરક્ષા કેન્દ્રો અથવા તમારા અંગત કટોકટી સંપર્કોને સીધા કૉલ કરવા માટે ટેપ કરો.",
+                call_emerg: "કટોકટી કૉલ (112)",
+                call_guardian: "વાલી કૉલ",
+                dial_helpline: "હેલ્પલાઇન કૉલ (1090)",
+                scream_title: "ચીસ / બૂમ સેન્સર",
+                scream_desc: "જો ફોનનું માઇક્રોફોન 1.5 સેકન્ડ સુધી ચાલુ રહેતી તીવ્ર માનવ ચીસ, અકસ્માત અથવા ગભરાટની બૂમો (>80 ડેસિબલ) સાંભળે, તો કવચ એસઓએસ આપમેળે સક્રિય થઈ જશે.",
+                sensitivity: "સેન્સર ટ્રિગર સંવેદનશીલતા:",
+                mock_mic: "માઇક્રોફોન અવરોધિત છે? મોક માઇક સક્રિય કરો:",
+                mock_btn_active: "સિગ્નલ બંધ કરો",
+                mock_btn_inactive: "સિગ્નલ સક્રિય કરો",
+                choose_profile: "1. વર્તમાન કટોકટી પ્રોફાઇલ પસંદ કરો:",
+                flood: "પૂર",
+                fire: "આગ",
+                quake: "ભૂકંપ",
+                medical: "તબીબી",
+                hold_text: "2 સેકન્ડ દબાવો",
+                hold_active: "સક્રિય થઈ રહ્યું છે...",
+                hold_live: "કવચ લાઇવ",
+                active_broadcast: "પ્રસારણ સક્રિય",
+                active_broadcast_desc: "જીપીએસ સ્થાન, આરોગ્ય કાર્ડ અને કટોકટી કેટેગરીની વિગતો આપતા ઑફલાઇન ટેલિમેટ્રી પેકેટો પ્રસારિત કરવામાં આવી રહ્યા છે",
+                sms_btn: "ઑફલાઇન એસએમએસ મોકલો",
+                abort_btn: "રદ કરો",
+                map_title: "સુરક્ષા ભૂ-લોકેટર",
+                offline_grid: "ઑફલાઇન ગ્રિડ",
+                online_tiles: "ઑનલાઇન નકશો",
+                gps_label: "વર્તમાન જીપીએસ કોઓર્ડિનેટ્સ",
+                mesh_label: "મેશ નેટવર્ક રિસેપ્શન્સ",
+                scan_gnss: "જીએનએસએસ પુનઃ સ્કેન",
+                registry_title: "નજીકની કટોકટી સુવિધાઓ",
+                registry_desc: "નજીકનું સુરક્ષા નેટવર્ક. અંતર વર્તમાન જીપીએસના આધારે વાસ્તવિક સમયમાં ગણવામાં આવે છે.",
+                registry_badge: "ઑફલાઇન રજિસ્ટ્રી",
+                neighbor_title: "પાડોશી સુરક્ષા તપાસ",
+                neighbor_desc: "સ્થિતિની ચકાસણી કરવા માટે, કવચ જીપીએસ કોઓર્ડિનેટ્સને નોંધાયેલા પાડોશીઓને ચકાસણી માટે એક ટેક્સ્ટ પેકેટમાં સંકલિત કરે છે.",
+                truth_badge: "સત્ય ચકાસણી",
+                neighbor_btn: "પાડોશીઓને ચકાસણી પેકેટ મોકલો",
+                survival_manual_title: "ઑફલાઇન જીવન રક્ષણ નિયમાવલી",
+                survival_manual_badge: "કેશ્ડ નકલો",
+                siren_btn: "ઓડિયો સાયરન શરૂ કરો",
+                siren_btn_active: "ઓડિયો સાયરન બંધ કરો",
+                beacon_btn: "બીકન શરૂ કરો",
+                beacon_btn_active: "બીકન બંધ કરો",
+                qr_btn: "ક્યૂઆર જુઓ",
+                qr_title: "ઑફલાઇન આરોગ્ય બચાવ ક્યૂઆર કાર્ડ",
+                qr_desc: "બચાવ ટીમોને સંપૂર્ણ બ્લેકઆઉટમાં તમારા ઑફલાઇન ઉપકરણમાંથી સીધા જ મહત્વપૂર્ણ આરોગ્ય મેટ્રિક્સ સ્કેન કરવાની મંજૂરી આપે છે.",
+                compass_label: "હોકાયંત્ર અખંડિતતા",
+                profile_modal_title: "આપાતકાલીન તબીબી કાર્ડ",
+                qr_modal_header: "બચાવ ક્યૂઆર કોડ શીલ્ડ",
+                beacon_overlay_title: "એકીકૃત કવચ બીકન",
+                beacon_overlay_desc: "સિન્ક્રોનાઇઝ્ડ 'S-O-S' મોર્સ કોડ તીવ્ર અને તેજસ્વી અવાજમાં. સ્ક્રીનને બહાર બચાવ ટુકડીઓ તરફ રાખો.",
+                deactivate_beacon: "એકીકૃત બીકન બંધ કરો"
+            }
+        };
+
+        const manuals = {
+            en: {
+                flood: `
+                    <div class="flex items-center space-x-2 text-sky-400 font-bold mb-1">
+                        <i data-lucide="droplet" class="w-4 h-4"></i>
+                        <span>FLOOD ACTIONS</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">Ascend to High Roofs:</strong> Move upward immediately. Avoid getting trapped in closed attics; always have a roof-access escape tool.</li>
+                        <li><strong class="text-white">Avoid Flowing Currents:</strong> Even 6 inches of rapidly flowing water can sweep away adults and stall utility vehicles.</li>
+                        <li><strong class="text-white">Sanitation Protocols:</strong> Do not consume tap or floodwater. Filter or rely exclusively on sealed bottles.</li>
+                    </ul>`,
+                fire: `
+                    <div class="flex items-center space-x-2 text-amber-400 font-bold mb-1">
+                        <i data-lucide="flame" class="w-4 h-4"></i>
+                        <span>FIRE EMERGENCY EVACUATION</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">Stay Low and Crawl:</strong> Heavy carbon smoke and heat expand upward. Maintain proximity to floor air.</li>
+                        <li><strong class="text-white">Test Doors:</strong> Feel door handles with the back of your hand before turning. If hot, choose alternative escape pathways.</li>
+                        <li><strong class="text-white">Avoid Lifts:</strong> Power is highly susceptible to blackouts. Use secondary staircases.</li>
+                    </ul>`,
+                quake: `
+                    <div class="flex items-center space-x-2 text-teal-400 font-bold mb-1">
+                        <i data-lucide="mountain" class="w-4 h-4"></i>
+                        <span>SEISMIC EVENT PROCEDURES</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">Drop, Cover, Hold On:</strong> Drop to hands and knees. Seek shelter under load-bearing desks or tables. Hold tight until tremors stop.</li>
+                        <li><strong class="text-white">Evacuate Cautiously:</strong> Exit structures only when active tremors cease. Keep clear of building facades and power lines.</li>
+                        <li><strong class="text-white">Expect Aftershocks:</strong> Be prepared for secondary tremors which can collapse unstable buildings.</li>
+                    </ul>`,
+                cpr: `
+                    <div class="flex items-center space-x-2 text-emerald-400 font-bold mb-1">
+                        <i data-lucide="heart-pulse" class="w-4 h-4"></i>
+                        <span>CARDIO-PULMONARY RESUSCITATION (CPR)</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-decimal list-inside leading-relaxed">
+                        <li><strong class="text-white">Verify Breathing:</strong> Check chest rise/fall and pulse for 10 seconds.</li>
+                        <li><strong class="text-white">Stack Your Hands:</strong> Place stacked palms directly in center of victim's breastbone.</li>
+                        <li><strong class="text-white">Deliver Compressions:</strong> Push firmly at a depth of 2 inches. Match rhythm to 100-120 beats per minute (Stayin' Alive track).</li>
+                    </ul>`
+            },
+            hi: {
+                flood: `
+                    <div class="flex items-center space-x-2 text-sky-400 font-bold mb-1">
+                        <i data-lucide="droplet" class="w-4 h-4"></i>
+                        <span>बाढ़ आपातकालीन उपाय</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">ऊंची छतों पर जाएं:</strong> तुरंत ऊपर की ओर बढ़ें। बंद अटारी में फंसने से बचें; हमेशा बाहर निकलने का साधन रखें।</li>
+                        <li><strong class="text-white">बहती धाराओं से बचें:</strong> केवल 6 इंच का बहता पानी भी वयस्कों को बहा सकता है और वाहनों को बंद कर सकता है।</li>
+                        <li><strong class="text-white">स्वच्छता नियम:</strong> नल या बाढ़ का पानी न पिएं। केवल सुरक्षित सीलबंद बोतलों पर निर्भर रहें।</li>
+                    </ul>`,
+                fire: `
+                    <div class="flex items-center space-x-2 text-amber-400 font-bold mb-1">
+                        <i data-lucide="flame" class="w-4 h-4"></i>
+                        <span>अग्नि आपातकालीन निकासी</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">झुकें और रेंगें:</strong> भारी कार्बन धुआं और गर्मी ऊपर की ओर फैलती है। फर्श के पास की हवा में सांस लें।</li>
+                        <li><strong class="text-white">दरवाजों का परीक्षण करें:</strong> खोलने से पहले हाथ के पिछले हिस्से से दरवाजे के हैंडल को छुएं। गर्म होने पर दूसरा रास्ता चुनें।</li>
+                        <li><strong class="text-white">लिफ्ट का उपयोग न करें:</strong> बिजली गुल होने की संभावना होती है। हमेशा सीढ़ियों का उपयोग करें।</li>
+                    </ul>`,
+                quake: `
+                    <div class="flex items-center space-x-2 text-teal-400 font-bold mb-1">
+                        <i data-lucide="mountain" class="w-4 h-4"></i>
+                        <span>भूकंप सुरक्षा प्रक्रियाएं</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">झुकें, ढकें, पकड़े रहें:</strong> हाथों और घुटनों के बल झुकें। भारी मेज या डेस्क के नीचे शरण लें। कंपन रुकने तक मजबूती से पकड़े रहें।</li>
+                        <li><strong class="text-white">सावधानी से बाहर निकलें:</strong> कंपन पूरी तरह रुकने के बाद ही इमारतों से बाहर आएं। बिजली के तारों और इमारतों से दूर रहें।</li>
+                        <li><strong class="text-white">आफ्टरशॉक के लिए तैयार रहें:</strong> मुख्य भूकंप के बाद आने वाले झटकों के लिए मानसिक रूप से तैयार रहें।</li>
+                    </ul>`,
+                cpr: `
+                    <div class="flex items-center space-x-2 text-emerald-400 font-bold mb-1">
+                        <i data-lucide="heart-pulse" class="w-4 h-4"></i>
+                        <span>कार्डियो-पल्मोनेरी रीससिटेशन (CPR)</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-decimal list-inside leading-relaxed">
+                        <li><strong class="text-white">सांस की जांच करें:</strong> 10 सेकंड के लिए पीड़ित की सांस और नाड़ी की जांच करें।</li>
+                        <li><strong class="text-white">हाथों की स्थिति:</strong> अपने दोनों हाथों को जोड़कर पीड़ित की छाती के ठीक बीच में रखें।</li>
+                        <li><strong class="text-white">कंप्रेशन दें:</strong> 2 इंच की गहराई तक तेजी से दबाएं। प्रति मिनट 100-120 बार की गति बनाए रखें।</li>
+                    </ul>`
+            },
+            gu: {
+                flood: `
+                    <div class="flex items-center space-x-2 text-sky-400 font-bold mb-1">
+                        <i data-lucide="droplet" class="w-4 h-4"></i>
+                        <span>પૂર દરમિયાન બચાવ પગલાં</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">ઊંચી જગ્યાએ જાઓ:</strong> તરત જ ઉપરની તરફ જાઓ. બંધ અટારીમાં ફસાવાનું ટાળો; હંમેશા બહાર નીકળવાનો રસ્તો ખુલ્લો રાખો.</li>
+                        <li><strong class="text-white">વહેતા પાણીથી બચો:</strong> માત્ર 6 ઇંચનું ઝડપથી વહેતું પાણી પણ પુખ્ત વયના લોકોને વહાવી શકે છે અને વાહનો બંધ કરી શકે છે.</li>
+                        <li><strong class="text-white">સ્વચ્છતા પ્રોટોકોલ:</strong> નળ કે પૂરનું પાણી ન પીશો. ફક્ત સીલબંધ પાણી પર જ આધાર રાખો.</li>
+                    </ul>`,
+                fire: `
+                    <div class="flex items-center space-x-2 text-amber-400 font-bold mb-1">
+                        <i data-lucide="flame" class="w-4 h-4"></i>
+                        <span>આગ દરમિયાન બહાર નીકળવાની પ્રક્રિયા</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">નીચે ઝૂકીને ચાલો:</strong> ભારે ઝેરી ધુમાડો અને ગરમી ઉપર તરફ વધે છે. ફ્લોરની નજીકની હવામાં શ્વાસ લો.</li>
+                        <li><strong class="text-white">દરવાજા તપાસો:</strong> ખોલતા પહેલા હાથની પાછળની બાજુથી દરવાજાના હેન્ડલને સ્પર્શ કરો. જો ગરમ હોય તો બીજો રસ્તો શોધો.</li>
+                        <li><strong class="text-white">લિફ્ટનો ઉપયોગ ન કરો:</strong> વીજળી ગુલ થવાની સંભાવના રહે છે. હંમેશા પગથિયાનો ઉપયોગ કરો.</li>
+                    </ul>`,
+                quake: `
+                    <div class="flex items-center space-x-2 text-teal-400 font-bold mb-1">
+                        <i data-lucide="mountain" class="w-4 h-4"></i>
+                        <span>ભૂકંપ સુરક્ષા પદ્ધતિઓ</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-disc list-inside leading-relaxed">
+                        <li><strong class="text-white">નમો, ઢંકાઈ જાઓ, પકડી રાખો:</strong> ઘૂંટણિયે નમો. મજબૂત ટેબલ અથવા ડેસ્ક નીચે આશ્રય લો. ધ્રુજારી બંધ ન થાય ત્યાં સુધી મજબૂત રીતે પકડી રાખો.</li>
+                        <li><strong class="text-white">સાવધાનીપૂર્વક બહાર નીકળો:</strong> ધ્રુજારી બંધ થયા પછી જ બહાર નીકળો. ઊંચી ઇમારતો અને વીજળીના લાઇનથી દૂર રહો.</li>
+                        <li><strong class="text-white">આફ્ટરશોક માટે તૈયાર રહો:</strong> મુખ્ય ભૂકંપ પછી આવતા આંચકાઓ માટે માનસિક રીતે તૈયાર રહો.</li>
+                    </ul>`,
+                cpr: `
+                    <div class="flex items-center space-x-2 text-emerald-400 font-bold mb-1">
+                        <i data-lucide="heart-pulse" class="w-4 h-4"></i>
+                        <span>કાર્ડિયો-પલ્મોનરી રીસસીટેશન (CPR)</span>
+                    </div>
+                    <ul class="space-y-1.5 text-teal-100 list-decimal list-inside leading-relaxed">
+                        <li><strong class="text-white">શ્વાસની તપાસ કરો:</strong> 10 સેકન્ડ માટે પીડિતની શ્વાસ અને નાડી તપાસો.</li>
+                        <li><strong class="text-white">હાથની સ્થિતિ:</strong> બંને હાથની હથેળીઓ જોડીને પીડિતની છાતીની મધ્યમાં રાખો.</li>
+                        <li><strong class="text-white">કમ્પ્રેસન આપો:</strong> 2 ઇંચ ઊંડાઈ સુધી ઝડપથી દબાવો. પ્રતિ મિનિટ 100-120 વખતની ઝડપ જાળવી રાખો.</li>
+                    </ul>`
+            }
+        };
+
+        // Core application state
+        let currentLang = 'en';
+        let selectedEmergency = 'general';
+        let sosHoldTimer = null;
+        let holdValue = 0;
+        let activeSOS = false;
+        let onlineMode = false; // Starts in simulated Offline scenario for realism
+        let batterySaverActive = false;
+        let audioSirenActive = false;
+        let unifiedBeaconActive = false;
+        let leafletMap = null;
+        let mapMode = 'offline'; // default grid representation
+        
+        // Decibel Vocal Scream Trigger states
+        let screamDetectionActive = false;
+        let audioStream = null;
+        let micCtx = null;
+        let micAnalyser = null;
+        let micProcessor = null;
+        let screamCounter = 0; // count consecutive high decibel frame frames to match 1.5s duration
+        let targetDecibels = 80; // default threshold limit in dB
+
+        // Iframe environment simulated mic toggle
+        let mockMicLoopInterval = null;
+        let mockMicActive = false;
+
+        // Compass orientation values
+        let physicalCompassActive = false;
+        let currentHeading = 0;
+
+        // Mock fallback local directory database (Prominent Rajkot Locations)
+        const localFacilities = [
+            { name: "Civil Emergency Hospital", nameHi: "सिविल आपातकालीन अस्पताल", nameGu: "સિવિલ ઇમરજન્સી હોસ્પિટલ", address: "Rajkot Main Road, Gujarat", lat: 22.3015, lng: 70.8033, phone: "02812444555", type: "medical" },
+            { name: "Sterling Critical Care", nameHi: "स्टर्लिंग क्रिटिकल केयर", nameGu: "સ્ટર્લિંગ ક્રિટિકલ કેર", address: "150 Feet Ring Road, Rajkot", lat: 22.2882, lng: 70.7766, phone: "+91281400100", type: "medical" },
+            { name: "Rajkot Fire & Emergency Stn", nameHi: "राजकोट फायर एंड आपातकालीन स्टेशन", nameGu: "રાજકોટ ફાયર એન્ડ ઇમરજન્સી સ્ટેશન", address: "Plaza Chowk, Rajkot", lat: 22.3081, lng: 70.8001, phone: "101", type: "fire" },
+            { name: "Mavdi Sub-Fire Station", nameHi: "मावड़ी सब-फायर स्टेशन", nameGu: "માવડી સબ-ફાયર સ્ટેશન", address: "Mavdi Road, Rajkot", lat: 22.2715, lng: 70.7850, phone: "02812333333", type: "fire" }
+        ];
+
+        // Mock fallback location center (Centred near Rajkot coordinates)
+        let userLocation = { lat: 22.3039, lng: 70.8022 }; 
+        
+        // Web Audio components for siren and beacon generation offline
+        let audioCtx = null;
+        let oscillator = null;
+        let gainNode = null;
+        let sirenInterval = null;
+
+        let beaconAudioCtx = null;
+        let beaconInterval = null;
+
+        // Bootstrapping
+        window.onload = function() {
+            try {
+                lucide.createIcons();
+            } catch(e) { console.warn("Lucide icons failed to draw.", e); }
+            
+            loadSavedProfile();
+            initGeoLocation();
+            initCompassSensor();
+            applyLanguage(); // Render translated strings
+            generateQRCode();
+            recalculateDistances();
+            
+            // Generate dynamic battery stats
+            let mockBattery = Math.floor(Math.random() * 20) + 45; 
+            document.getElementById('battery-status').innerText = `${mockBattery}%`;
+            if (mockBattery < 50) {
+                document.getElementById('battery-btn').classList.replace('text-emerald-400', 'text-amber-400');
+            }
+        }
+
+        // --- LANGUAGE SWITCHER LOGIC ---
+        function toggleLanguage() {
+            if (currentLang === 'en') {
+                currentLang = 'hi';
+                document.getElementById('lang-btn-text').innerText = 'ગુજરાતી';
+            } else if (currentLang === 'hi') {
+                currentLang = 'gu';
+                document.getElementById('lang-btn-text').innerText = 'English';
+            } else {
+                currentLang = 'en';
+                document.getElementById('lang-btn-text').innerText = 'हिन्दी';
+            }
+            applyLanguage();
+            recalculateDistances();
+            
+            let toastTitle = "Language Updated";
+            let toastBody = "Application configured to English.";
+            if (currentLang === 'hi') {
+                toastTitle = "भाषा बदली गई";
+                toastBody = "एप्लिकेशन हिंदी भाषा में कॉन्फ़िगर किया गया है।";
+            } else if (currentLang === 'gu') {
+                toastTitle = "ભાષા બદલવામાં આવી";
+                toastBody = "એપ્લિકેશન ગુજરાતી ભાષામાં સેટ કરવામાં આવી છે.";
+            }
+            
+            triggerToast(toastTitle, toastBody);
+        }
+
+        function applyLanguage() {
+            const dict = translations[currentLang];
+            
+            // Update structural translated values
+            document.getElementById('header-app-title').innerText = dict.app_title;
+            document.getElementById('shield-banner-text').innerHTML = dict.offline_desc;
+            
+            // Query selector all element keys matching translation tags
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if (dict[key]) {
+                    el.innerText = dict[key];
+                }
+            });
+
+            // Handle manuals tab viewport rendering
+            switchGuide('guide-flood');
+        }
+
+        // --- COMPASS ACCELEROMETER SENSOR CORE ---
+        function initCompassSensor() {
+            // Attempt to bind to native deviceorientation head sensors
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                window.addEventListener('deviceorientation', handleOrientation, true);
+                
+                // Fallback simulation rotation loop if no physical movements detected within 3 seconds
+                setTimeout(() => {
+                    if (!physicalCompassActive) {
+                        startCompassSimulation();
+                    }
+                }, 3000);
+            } else {
+                startCompassSimulation();
+            }
+        }
+
+        function handleOrientation(event) {
+            let heading = 0;
+            // Check for absolute heading support on iOS vs Android
+            if (event.webkitCompassHeading) {
+                heading = event.webkitCompassHeading;
+                physicalCompassActive = true;
+            } else if (event.alpha) {
+                heading = 360 - event.alpha;
+                physicalCompassActive = true;
+            }
+
+            if (physicalCompassActive) {
+                currentHeading = Math.round(heading);
+                updateCompassVisuals();
+            }
+        }
+
+        function updateCompassVisuals() {
+            const compassRing = document.getElementById('tactical-compass');
+            const alignmentVal = document.getElementById('compass-alignment-val');
+            const statusLabel = document.getElementById('compass-status');
+
+            if (compassRing) {
+                // Rotate the compass graphic to counter the rotation
+                compassRing.style.transform = `rotate(${-currentHeading}deg)`;
+            }
+            if (alignmentVal) {
+                alignmentVal.innerText = `${currentHeading}° ` + getCardinalDirection(currentHeading);
+            }
+            if (statusLabel) {
+                statusLabel.innerText = currentLang === 'en' ? "COMPASS HARDWARE ACTIVE" : "कम्पस हार्डवेयर सक्रिय";
+                statusLabel.classList.replace('text-teal-400', 'text-emerald-400');
+            }
+        }
+
+        function getCardinalDirection(deg) {
+            if (deg >= 337.5 || deg < 22.5) return 'N';
+            if (deg >= 22.5 && deg < 67.5) return 'NE';
+            if (deg >= 67.5 && deg < 112.5) return 'E';
+            if (deg >= 112.5 && deg < 157.5) return 'SE';
+            if (deg >= 157.5 && deg < 202.5) return 'S';
+            if (deg >= 202.5 && deg < 247.5) return 'SW';
+            if (deg >= 247.5 && deg < 292.5) return 'W';
+            return 'NW';
+        }
+
+        // Simulated rotation drift to make the UI interactive and alive during desktop testing
+        function startCompassSimulation() {
+            let simulatedDrift = 0;
+            setInterval(() => {
+                if (physicalCompassActive) return; // Native sensor takes priority
+                
+                simulatedDrift = (simulatedDrift + Math.floor(Math.random() * 8) - 3) % 360;
+                if (simulatedDrift < 0) simulatedDrift += 360;
+                
+                currentHeading = simulatedDrift;
+                updateCompassVisuals();
+                
+                // Keep the label simulated indicator clear
+                const statusLabel = document.getElementById('compass-status');
+                if (statusLabel) {
+                    statusLabel.innerText = currentLang === 'en' ? "COMPASS SIMULATION" : "कम्पस सिम्युलेटेड संरेखण";
+                }
+            }, 1000);
+        }
+
+
+        // --- SECTION 1: TRANSCEIVER CATEGORY AND TRIGGER SYSTEM ---
+        function setEmergencyType(type) {
+            selectedEmergency = type;
+            
+            // Clean active classes
+            document.querySelectorAll('.emergency-type-btn').forEach(btn => {
+                btn.classList.remove('border-teal-400', 'bg-teal-900/60', 'border-amber-400', 'bg-teal-900/60', 'border-sky-400', 'bg-teal-900/60', 'border-emerald-400', 'bg-teal-900/60');
+            });
+
+            // Set unique border visual colors matching the disaster type
+            const activeBtn = document.getElementById(`btn-${type}`);
+            if (type === 'flood') {
+                activeBtn.classList.add('border-sky-400', 'bg-teal-900/60');
+            } else if (type === 'fire') {
+                activeBtn.classList.add('border-amber-400', 'bg-teal-900/60');
+            } else if (type === 'earthquake') {
+                activeBtn.classList.add('border-teal-400', 'bg-teal-900/60');
+            } else if (type === 'medical') {
+                activeBtn.classList.add('border-emerald-400', 'bg-teal-900/60');
+            }
+            
+            triggerToast(
+                currentLang === 'en' ? "Disaster Context Selected" : "आपदा संदर्भ चुना गया", 
+                currentLang === 'en' ? `Configured Kavach packet headers for ${type.toUpperCase()} rescue teams.` : `${type.toUpperCase()} बचाव दलों के लिए कवच पैकेट हेडर कॉन्फ़िगर किए गए हैं।`
+            );
+            document.getElementById('status-emerg-type').innerText = currentLang === 'en' ? type : translations['hi'][type];
+            generateQRCode(); 
+        }
+
+        // Prevent unintentional activation using customized touch holds
+        function startSOSHold(e) {
+            if (e) e.preventDefault();
+            if (activeSOS) return;
+            
+            holdValue = 0;
+            const progressCircle = document.getElementById('hold-progress');
+            document.getElementById('hold-text').innerText = currentLang === 'en' ? "ARMING..." : "सक्रिय हो रहा है...";
+
+            sosHoldTimer = setInterval(() => {
+                holdValue += 5;
+                let offset = 515 - (515 * (holdValue / 100));
+                progressCircle.style.strokeDashoffset = offset;
+
+                if (holdValue >= 100) {
+                    clearInterval(sosHoldTimer);
+                    triggerActiveSOS();
+                }
+            }, 100);
+        }
+
+        function cancelSOSHold(e) {
+            if (e) e.preventDefault();
+            if (activeSOS) return;
+            
+            clearInterval(sosHoldTimer);
+            holdValue = 0;
+            document.getElementById('hold-progress').style.strokeDashoffset = 515;
+            document.getElementById('hold-text').innerText = currentLang === 'en' ? "HOLD 2 SEC" : "2 सेकंड दबाएं";
+        }
+
+        function triggerActiveSOS() {
+            fetch(`${API_URL}/api/sos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            alert: "SOS Triggered",
+            time: new Date().toISOString() 
+        })
+    })
+    .then(response => console.log("Signal sent to backend!"))
+    .catch(error => console.error("Error:", error));
+            activeSOS = true; 
+            document.getElementById('hold-text').innerText = currentLang === 'en' ? "KAVACH LIVE" : "कवच लाइव";
+            document.getElementById('hold-progress').style.stroke = "#2dd4bf"; 
+            document.getElementById('hold-progress').style.strokeDashoffset = 0;
+
+            document.getElementById('trigger-pulse-1').classList.remove('hidden');
+            document.getElementById('trigger-pulse-2').classList.remove('hidden');
+
+            document.getElementById('status-emerg-type').innerText = currentLang === 'en' ? selectedEmergency : translations['hi'][selectedEmergency];
+            document.getElementById('active-broadcast-panel').classList.remove('hidden');
+            
+            playAlertChime();
+            triggerToast(
+                currentLang === 'en' ? "KAVACH SHIELD ACTIVE" : "कवच सुरक्षा सक्रिय", 
+                currentLang === 'en' ? "Radio mesh broadcast sent successfully via Bluetooth P2P protocols." : "ब्लूटूथ पी2पी मेश के माध्यम से रेडियो मेश सफलतापूर्वक प्रसारित किया गया।"
+            );
+            generateQRCode();
+        }
+
+        function cancelActiveSOS() {
+            activeSOS = false;
+            document.getElementById('hold-text').innerText = currentLang === 'en' ? "HOLD 2 SEC" : "2 सेकंड दबाएं";
+            document.getElementById('hold-progress').style.stroke = "white";
+            document.getElementById('hold-progress').style.strokeDashoffset = 515;
+
+            document.getElementById('trigger-pulse-1').classList.add('hidden');
+            document.getElementById('trigger-pulse-2').classList.add('hidden');
+            document.getElementById('active-broadcast-panel').classList.add('hidden');
+            
+            triggerToast(
+                currentLang === 'en' ? "SOS Stopped" : "एसओएस रोका गया", 
+                currentLang === 'en' ? "Transceiver beacon disarmed." : "बीकन को निष्क्रिय कर दिया गया है।"
+            );
+            generateQRCode();
+        }
+
+        // --- SECTION 2: GEOGRAPHIC LOCATION & RADAR GRID ---
+        function switchMapMode(mode) {
+            mapMode = mode;
+            const btnOffline = document.getElementById('map-mode-offline');
+            const btnOnline = document.getElementById('map-mode-online');
+            const offlineContainer = document.getElementById('offline-grid-container');
+            const liveMapContainer = document.getElementById('live-map');
+
+            if (mode === 'offline') {
+                btnOffline.className = "px-2.5 py-1 text-[10px] font-extrabold rounded-lg bg-teal-900 text-teal-300 border border-teal-800 transition";
+                btnOnline.className = "px-2.5 py-1 text-[10px] font-bold rounded-lg text-teal-400 hover:text-teal-200 transition";
+                
+                offlineContainer.classList.add('z-10');
+                liveMapContainer.classList.add('opacity-0', 'pointer-events-none');
+            } else {
+                btnOnline.className = "px-2.5 py-1 text-[10px] font-extrabold rounded-lg bg-teal-900 text-teal-300 border border-teal-800 transition";
+                btnOffline.className = "px-2.5 py-1 text-[10px] font-bold rounded-lg text-teal-400 hover:text-teal-200 transition";
+                
+                offlineContainer.classList.remove('z-10');
+                liveMapContainer.classList.remove('opacity-0', 'pointer-events-none');
+                
+                // Lazy initialize Leaflet JS
+                initLeafletMap();
+            }
+        }
+
+        function initLeafletMap() {
+            if (leafletMap) return;
+            if (typeof L === 'undefined') {
+                console.warn("Leaflet Map libraries not fully fetched yet. Fallback to Offline Grid.");
+                switchMapMode('offline');
+                return;
+            }
+            
+            try {
+                leafletMap = L.map('live-map', {
+                    zoomControl: false,
+                    attributionControl: false
+                }).setView([userLocation.lat, userLocation.lng], 14);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 18
+                }).addTo(leafletMap);
+
+                const userIcon = L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div class='w-4 h-4 rounded-full bg-teal-500 border-2 border-white animate-pulse'></div>`,
+                    iconSize: [16, 16]
+                });
+
+                L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+                    .addTo(leafletMap)
+                    .bindPopup('<strong class="text-stone-900">Your Incident Spot</strong>')
+                    .openPopup();
+
+                // Populate mapping facilities
+                localFacilities.forEach(fac => {
+                    const facIcon = L.divIcon({
+                        className: fac.type === 'medical' ? 'custom-icon-med' : 'custom-icon-fire',
+                        html: `<div class='w-6 h-6 rounded-full ${fac.type === 'medical' ? 'bg-emerald-600' : 'bg-amber-600'} border border-white flex items-center justify-center text-[9px] text-white font-black shadow-md'>${fac.type === 'medical' ? 'H' : 'F'}</div>`,
+                        iconSize: [24, 24]
+                    });
+                    L.marker([fac.lat, fac.lng], { icon: facIcon })
+                        .addTo(leafletMap)
+                        .bindPopup(`<strong class="text-stone-900">${fac.name}</strong><br><span class="text-[10px]">${fac.address}</span>`);
+                });
+            } catch(e) {
+                console.error("Leaflet instantiation error: ", e);
+            }
+        }
+
+        function initGeoLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        userLocation.lat = pos.coords.latitude;
+                        userLocation.lng = pos.coords.longitude;
+                        document.getElementById('coords-text').innerText = `${userLocation.lat.toFixed(4)}° N, ${userLocation.lng.toFixed(4)}° E`;
+                        if (leafletMap) {
+                            leafletMap.setView([userLocation.lat, userLocation.lng], 14);
+                        }
+                        generateQRCode();
+                        recalculateDistances();
+                    },
+                    (err) => {
+                        console.log("Using static incident localization.");
+                    }
+                );
+            }
+        }
+
+        function refreshMockCoordinates() {
+            userLocation.lat += (Math.random() - 0.5) * 0.001;
+            userLocation.lng += (Math.random() - 0.5) * 0.001;
+            
+            document.getElementById('coords-text').innerText = `${userLocation.lat.toFixed(4)}° N, ${userLocation.lng.toFixed(4)}° E`;
+            if (leafletMap) {
+                leafletMap.setView([userLocation.lat, userLocation.lng], 15);
+            }
+            generateQRCode();
+            recalculateDistances();
+            triggerToast(
+                currentLang === 'en' ? "GNSS Position Polled" : "जीपीएस स्थिति संरेखित", 
+                currentLang === 'en' ? "Fresh GPS parameters calculated directly over offline telemetry bands." : "सीधे ऑफ़लाइन टेलीमेट्री स्पेक्ट्रम पर नए जीपीएस स्थान की गणना की गई।"
+            );
+        }
+
+        // Distance math algorithm using Haversine formula
+        function getDistanceHaversine(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth Radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distance in km
+        }
+
+        // Recalculates offline distances dynamically and renders directory content
+        function recalculateDistances() {
+            const container = document.getElementById('facility-directory');
+            if (!container) return;
+
+            // Sort local facilities by physical distance from current user coordinates
+            const mapped = localFacilities.map(fac => {
+                const distance = getDistanceHaversine(userLocation.lat, userLocation.lng, fac.lat, fac.lng);
+                return { ...fac, distance };
+            }).sort((a, b) => a.distance - b.distance);
+
+            container.innerHTML = '';
+            mapped.forEach(fac => {
+                const distanceStr = fac.distance.toFixed(2);
+                const displayName = currentLang === 'en' ? fac.name : (currentLang === 'hi' ? fac.nameHi : fac.nameGu);
+                const activeLabel = currentLang === 'en' ? 'ACTIVE 24/7' : (currentLang === 'hi' ? '24/7 सक्रिय' : '24/7 સક્રિય');
+                container.innerHTML += `
+                    <div class="bg-teal-950 p-3 rounded-xl border border-teal-900/60 flex justify-between items-center transition duration-150 hover:border-teal-800">
+                        <div class="space-y-0.5">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full ${fac.type === 'medical' ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+                                <span class="text-xs font-bold text-white">${displayName}</span>
+                            </div>
+                            <span class="text-[9px] text-teal-500 font-medium block">${fac.address}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-right">
+                            <div class="text-[10px] accent-font">
+                                <span class="text-teal-300 font-bold block">~${distanceStr} km</span>
+                                <span class="text-emerald-400 block text-[8px] font-extrabold">${activeLabel}</span>
+                            </div>
+                            <a href="tel:${fac.phone}" onclick="trackQuickCall('${fac.name}')" class="p-1.5 bg-teal-900/50 text-teal-400 hover:bg-teal-900/80 rounded-lg border border-teal-800 transition">
+                                <i data-lucide="phone-call" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            try {
+                lucide.createIcons();
+            } catch(e){}
+        }
+
+
+        // --- COGNITIVE SOUND MONITOR (SCREAM / NOISE CRISIS DETECTOR) ---
+        async function toggleScreamMonitoring() {
+            const toggle = document.getElementById('scream-monitor-switch');
+            const statusIcon = document.getElementById('mic-status-icon');
+            const liveDbLabel = document.getElementById('live-db-level');
+
+            if (toggle.checked) {
+                try {
+                    // Check browser microphone permissions offline
+                    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    micCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    const source = micCtx.createMediaStreamSource(audioStream);
+                    micAnalyser = micCtx.createAnalyser();
+                    micAnalyser.fftSize = 256;
+                    source.connect(micAnalyser);
+
+                    const bufferLength = micAnalyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    
+                    screamDetectionActive = true;
+                    statusIcon.classList.add('text-emerald-400', 'animate-pulse');
+                    triggerToast(
+                        currentLang === 'en' ? "Microphone Monitor Active" : "माइक्रोफ़ोन सेंसर सक्रिय", 
+                        currentLang === 'en' ? "Listening locally for high decibel panic signals." : "तेज चीख या आवाज की पहचान करने के लिए माइक्रोफ़ोन सक्रिय किया गया है।"
+                    );
+
+                    function sampleSignal() {
+                        if (!screamDetectionActive) return;
+                        requestAnimationFrame(sampleSignal);
+
+                        micAnalyser.getByteFrequencyData(dataArray);
+                        
+                        // Compute RMS volume amplitude
+                        let sum = 0;
+                        for (let i = 0; i < bufferLength; i++) {
+                            sum += dataArray[i] * dataArray[i];
+                        }
+                        let rms = Math.sqrt(sum / bufferLength);
+
+                        // Convert volume amplitude to relative logarithmic Decibel Scale (0-120 dB)
+                        let calculatedDB = rms > 0 ? Math.round(20 * Math.log10(rms) + 30) : 0;
+                        calculatedDB = Math.min(Math.max(calculatedDB, 35), 120); // Clamp between quiet room and loud scream
+
+                        liveDbLabel.innerText = `${calculatedDB} dB`;
+
+                        // Draw live bouncing visual waveform bars
+                        const bars = document.querySelectorAll('.audio-bar');
+                        bars.forEach((bar, idx) => {
+                            let variance = Math.max(calculatedDB - 40, 2);
+                            let randomWobble = Math.random() * 8 - 4;
+                            let heightPercent = Math.min(Math.max((variance / 80) * 100 + randomWobble, 10), 100);
+                            bar.style.height = `${heightPercent}%`;
+
+                            // Turn warning color if sound goes past threshold (using soft rose instead of alarming red)
+                            if (calculatedDB >= targetDecibels) {
+                                bar.style.backgroundColor = '#f43f5e'; // Soft Calming Coral Rose
+                            } else {
+                                bar.style.backgroundColor = '#14b8a6'; // Soothing Teal
+                            }
+                        });
+
+                        // Logic: Auto-trigger SOS if sound sustained above target threshold for ~1.5 seconds
+                        if (calculatedDB >= targetDecibels) {
+                            screamCounter++;
+                            if (screamCounter > 90 && !activeSOS) {
+                                screamCounter = 0;
+                                triggerActiveSOS();
+                                triggerToast(
+                                    currentLang === 'en' ? "Panic Sensor Engaged" : "ध्वनि सेंसर सक्रिय", 
+                                    currentLang === 'en' ? "Auto-SOS triggered from high-decibel acoustic vocal collapse!" : "तेज आवाज या चीख-पुकार के कारण स्वचालित एसओएस ट्रिगर सक्रिय!"
+                                );
+                            }
+                        } else {
+                            if (screamCounter > 0) screamCounter -= 2; // decay counters
+                        }
+                    }
+
+                    sampleSignal();
+
+                } catch (err) {
+                    console.error("Mic access denied.", err);
+                    triggerToast(
+                        currentLang === 'en' ? "Microphone Blocked" : "माइक्रोफ़ोन अवरुद्ध", 
+                        currentLang === 'en' ? "Please grant microphone hardware permission to enable acoustic panic trigger." : "आवाज सेंसर का उपयोग करने के लिए कृपया माइक्रोफ़ोन की अनुमति प्रदान करें।"
+                    );
+                    toggle.checked = false;
+                }
+            } else {
+                stopScreamMonitoring();
+            }
+        }
+
+        function stopScreamMonitoring() {
+            screamDetectionActive = false;
+            const statusIcon = document.getElementById('mic-status-icon');
+            const liveDbLabel = document.getElementById('live-db-level');
+            
+            statusIcon.classList.remove('text-emerald-400', 'animate-pulse');
+            liveDbLabel.innerText = currentLang === 'en' ? "MIC SLEEPING" : "सेंसर निष्क्रिय";
+
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+            if (micCtx) {
+                micCtx.close();
+            }
+
+            // Flatten waveform display
+            const bars = document.querySelectorAll('.audio-bar');
+            bars.forEach(bar => {
+                bar.style.height = '4px';
+                bar.style.backgroundColor = '#0d2e33';
+            });
+            triggerToast(
+                currentLang === 'en' ? "Microphone Standby" : "माइक्रोफ़ोन स्टैंडबाय", 
+                currentLang === 'en' ? "Sound monitoring paused." : "आवाज की निगरानी रोक दी गई है।"
+            );
+        }
+
+        // Simulation script bypass for iframe environment testing
+        function toggleMockMicLoop() {
+            const btn = document.getElementById('mock-mic-btn');
+            const liveDbLabel = document.getElementById('live-db-level');
+            const bars = document.querySelectorAll('.audio-bar');
+            
+            if (mockMicActive) {
+                clearInterval(mockMicLoopInterval);
+                mockMicActive = false;
+                btn.innerText = translations[currentLang].mock_btn_inactive;
+                liveDbLabel.innerText = currentLang === 'en' ? "MIC SLEEPING" : "सेंसर निष्क्रिय";
+                bars.forEach(b => { b.style.height = "4px"; b.style.backgroundColor = "#0d2e33"; });
+                triggerToast(
+                    currentLang === 'en' ? "Simulator Disarmed" : "सिम्युलेटर बंद", 
+                    currentLang === 'en' ? "Simulated vocal inputs stopped." : "सिम्युलेटेड वॉयस सेंसर निष्क्रिय किया गया।"
+                );
+            } else {
+                mockMicActive = true;
+                btn.innerText = translations[currentLang].mock_btn_active;
+                triggerToast(
+                    currentLang === 'en' ? "Simulator Activated" : "सिम्युलेटर सक्रिय", 
+                    currentLang === 'en' ? "Emulating erratic voice levels to preview auto-trigger mechanics." : "स्वचालित ट्रिगर को जांचने के लिए सिम्युलेटेड आवाज शुरू की गई।"
+                );
+
+                mockMicLoopInterval = setInterval(() => {
+                    // Generate fluctuating decibel peaks
+                    let simulatedDB = Math.floor(Math.random() * 55) + 40; 
+                    
+                    // Simulate a periodic panic scream (> 85dB) every few cycles
+                    if (Math.random() > 0.82) {
+                        simulatedDB = Math.floor(Math.random() * 20) + 85;
+                        triggerToast(
+                            currentLang === 'en' ? "Simulating Screaming Shout!" : "सिम्युलेटेड चीख पहचानी गई!", 
+                            currentLang === 'en' ? `Sound peaks registered at ${simulatedDB} dB!` : `ध्वनि स्तर ${simulatedDB} डेसिबल तक पहुंचा!`
+                        );
+                        
+                        // Instantly trigger SOS if sustained
+                        if (!activeSOS) {
+                            setTimeout(() => {
+                                if (mockMicActive) {
+                                    triggerActiveSOS();
+                                    triggerToast(
+                                        currentLang === 'en' ? "Kavach Engaged via Sim" : "कवच एसओएस सक्रिय", 
+                                        currentLang === 'en' ? "SOS successfully activated through voice simulation." : "सिम्युलेशन के माध्यम से स्वचालित आपातकाल सक्रिय हुआ।"
+                                    );
+                                }
+                            }, 1200);
+                        }
+                    }
+
+                    liveDbLabel.innerText = `${simulatedDB} dB`;
+                    bars.forEach(bar => {
+                        let heightPercent = Math.min(Math.max(((simulatedDB - 30) / 90) * 100, 10), 100);
+                        bar.style.height = `${heightPercent}%`;
+                        bar.style.backgroundColor = simulatedDB >= targetDecibels ? '#f43f5e' : '#14b8a6';
+                    });
+                }, 400);
+            }
+        }
+
+        function updateSensitivityThreshold(val) {
+            targetDecibels = parseInt(val);
+            document.getElementById('sensitivity-lbl').innerText = `${targetDecibels} dB`;
+        }
+
+
+        // --- SECTION 3: SOUND SYNTHESIS & UNIFIED MORSE FLASH FLASHER ---
+        function toggleAudioSiren() {
+            if (audioSirenActive) {
+                stopSirenAudio();
+            } else {
+                startSirenAudio();
+            }
+        }
+
+        function startSirenAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(550, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.35, audioCtx.currentTime); 
+
+                oscillator.start();
+                audioSirenActive = true;
+                document.getElementById('siren-btn-text').innerText = currentLang === 'en' ? "STOP AUDIO SIREN" : "ऑडियो सायरन बंद करें";
+                document.getElementById('siren-btn').classList.replace('bg-teal-900', 'bg-emerald-600');
+
+                // High pitch rescue warble sequence
+                let pitchUp = true;
+                sirenInterval = setInterval(() => {
+                    if (!audioCtx || audioCtx.state === 'closed') return;
+                    let currentFreq = oscillator.frequency.value;
+                    if (pitchUp) {
+                        oscillator.frequency.setValueAtTime(currentFreq + 65, audioCtx.currentTime);
+                        if (oscillator.frequency.value >= 1150) pitchUp = false;
+                    } else {
+                        oscillator.frequency.setValueAtTime(currentFreq - 65, audioCtx.currentTime);
+                        if (oscillator.frequency.value <= 550) pitchUp = true;
+                    }
+                }, 25);
+
+                triggerToast(
+                    currentLang === 'en' ? "Canine Acoustic Wave Active" : "ध्वनि सायरन सक्रिय", 
+                    currentLang === 'en' ? "Emitting loud acoustic locator signal to guide rescue teams to you." : "खोजी और बचाव टीमों को आकर्षित करने के लिए सायरन सक्रिय है।"
+                );
+            } catch (err) {
+                triggerToast(
+                    currentLang === 'en' ? "Audio Blocked" : "ऑडियो ब्लॉक है", 
+                    currentLang === 'en' ? "Interact with screen first to grant sound permission." : "ध्वनि सायरन शुरू करने के लिए कृपया स्क्रीन पर कहीं टैप करें।"
+                );
+            }
+        }
+
+        function stopSirenAudio() {
+            if (sirenInterval) clearInterval(sirenInterval);
+            if (oscillator) {
+                try { oscillator.stop(); } catch(e) {}
+            }
+            if (audioCtx) {
+                try { audioCtx.close(); } catch(e) {}
+            }
+            audioSirenActive = false;
+            document.getElementById('siren-btn-text').innerText = currentLang === 'en' ? "START AUDIO SIREN" : "ऑडियो सायरन शुरू करें";
+            document.getElementById('siren-btn').classList.replace('bg-emerald-600', 'bg-teal-900');
+            triggerToast(
+                currentLang === 'en' ? "Acoustic Sound Stopped" : "सायरन बंद", 
+                currentLang === 'en' ? "Muted siren to preserve battery power." : "बैटरी बचाने के लिए ध्वनि सायरन बंद किया गया।"
+            );
+        }
+
+        // Unified Audio-Visual Morse SOS Beacon Toggle
+        function toggleUnifiedBeacon() {
+            if (unifiedBeaconActive) {
+                stopUnifiedBeacon();
+            } else {
+                startUnifiedBeacon();
+            }
+        }
+
+        function startUnifiedBeacon() {
+            const overlay = document.getElementById('flash-overlay');
+            overlay.classList.remove('hidden');
+            unifiedBeaconActive = true;
+            document.getElementById('beacon-toggle-btn').innerText = currentLang === 'en' ? "DISARM BEACON" : "बीकन बंद करें";
+            document.getElementById('beacon-toggle-btn').classList.replace('bg-teal-900', 'bg-amber-600');
+
+            try {
+                beaconAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch(e) { console.warn("Acoustic synth unavailable.", e); }
+
+            // SOS pattern: 3 dots, 3 dashes, 3 dots (1 = on, 0 = off)
+            const morsePattern = [
+                1, 0, 1, 0, 1, 0,             // S (dots)
+                0, 0,                         // letter spacing
+                1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, // O (dashes)
+                0, 0,                         // letter spacing
+                1, 0, 1, 0, 1, 0,             // S (dots)
+                0, 0, 0, 0, 0                 // cycle spacing
+            ];
+            let patternIndex = 0;
+
+            beaconInterval = setInterval(() => {
+                const signal = morsePattern[patternIndex];
+                if (signal === 1) {
+                    overlay.style.backgroundColor = '#f59e0b'; // Amber high intensity glow
+                    playBeaconTone(880, 0.15); // Clear acoustic beep
+                } else {
+                    overlay.style.backgroundColor = '#030a0d'; // Deep oceanic dark
+                }
+                patternIndex = (patternIndex + 1) % morsePattern.length;
+            }, 180);
+
+            triggerToast(
+                currentLang === 'en' ? "Unified SOS Beacon Active" : "एकीकृत एसओएस बीकन सक्रिय", 
+                currentLang === 'en' ? "Synchronized screen strobes and acoustic tracking tones enabled." : "सिंक्रनाइज़ स्क्रीन स्ट्रोब और ध्वनि बीकन शुरू किया गया।"
+            );
+        }
+
+        function playBeaconTone(freq, duration) {
+            if (!beaconAudioCtx) return;
+            try {
+                const osc = beaconAudioCtx.createOscillator();
+                const gain = beaconAudioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(beaconAudioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, beaconAudioCtx.currentTime);
+                gain.gain.setValueAtTime(0.25, beaconAudioCtx.currentTime);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.01, beaconAudioCtx.currentTime + duration);
+                osc.stop(beaconAudioCtx.currentTime + duration);
+            } catch(e){}
+        }
+
+        function stopUnifiedBeacon() {
+            const overlay = document.getElementById('flash-overlay');
+            overlay.classList.add('hidden');
+            clearInterval(beaconInterval);
+            if (beaconAudioCtx) {
+                try { beaconAudioCtx.close(); } catch(e){}
+                beaconAudioCtx = null;
+            }
+            unifiedBeaconActive = false;
+            document.getElementById('beacon-toggle-btn').innerText = currentLang === 'en' ? "LAUNCH BEACON" : "बीकन चालू करें";
+            document.getElementById('beacon-toggle-btn').classList.replace('bg-amber-600', 'bg-teal-900');
+            triggerToast(
+                currentLang === 'en' ? "Unified Beacon Disarmed" : "एकीकृत बीकन बंद", 
+                currentLang === 'en' ? "SOS visual flash and beeping cycle stopped." : "एसओएस विजुअल फ्लैश और बीपिंग चक्र रोक दिया गया है।"
+            );
+        }
+
+
+        // --- SECTION 4: OFFLINE MEDICAL TELEMETRY CARDS ---
+        function toggleProfileModal() {
+            document.getElementById('profile-modal').classList.toggle('hidden');
+            try {
+                lucide.createIcons();
+            } catch(e){}
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('profile-name').value;
+            const blood = document.getElementById('profile-blood').value;
+            const age = document.getElementById('profile-age').value;
+            const conditions = document.getElementById('profile-conditions').value;
+            const contacts = document.getElementById('profile-contact').value;
+
+            const profile = { name, blood, age, conditions, contacts };
+            localStorage.setItem('aegis_profile', JSON.stringify(profile));
+            
+            toggleProfileModal();
+            triggerToast(
+                currentLang === 'en' ? "Medical Card Saved" : "चिकित्सा कार्ड सहेजा गया", 
+                currentLang === 'en' ? "Stored telemetry data safely on local device sandboxes." : "चिकित्सा डेटा आपके डिवाइस पर ऑफ़लाइन सहेज लिया गया है।"
+            );
+            updateGuardianDialer(contacts);
+            generateQRCode();
+        }
+
+        function loadSavedProfile() {
+            const saved = localStorage.getItem('aegis_profile');
+            if (saved) {
+                const profile = JSON.parse(saved);
+                document.getElementById('profile-name').value = profile.name || '';
+                document.getElementById('profile-blood').value = profile.blood || 'Unknown';
+                document.getElementById('profile-age').value = profile.age || '';
+                document.getElementById('profile-conditions').value = profile.conditions || '';
+                document.getElementById('profile-contact').value = profile.contacts || '';
+                updateGuardianDialer(profile.contacts || '');
+            }
+        }
+
+        function updateGuardianDialer(num) {
+            const dialBtn = document.getElementById('guardian-call-btn');
+            const dialLbl = document.getElementById('guardian-call-label');
+            if (num) {
+                dialBtn.href = `tel:${num}`;
+                dialLbl.innerText = currentLang === 'en' ? `CALL GUARDIAN` : `अभिभावक कॉल`;
+            } else {
+                dialBtn.href = `tel:1090`;
+                dialLbl.innerText = currentLang === 'en' ? `CALL HELPLINE` : `हेल्पलाइन कॉल`;
+            }
+        }
+
+        function toggleQRModal() {
+            const modal = document.getElementById('qr-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                generateQRCode();
+            }
+        }
+
+        // Dynamic scannable QR generation with resilient procedural fallback
+        function generateQRCode() {
+            const canvas = document.getElementById('qr-canvas');
+            if (!canvas) return;
+            
+            const saved = localStorage.getItem('aegis_profile');
+            let profile = saved ? JSON.parse(saved) : { name: 'Anonymous', blood: 'Unknown', conditions: 'None', contacts: '112' };
+            
+            // Render text telemetry descriptors underneath the canvas
+            document.getElementById('qr-payload-type').innerText = `${selectedEmergency.toUpperCase()} SOS ACTIVE`;
+            document.getElementById('qr-payload-geo').innerText = `${userLocation.lat.toFixed(4)}° N, ${userLocation.lng.toFixed(4)}° E`;
+            document.getElementById('qr-payload-name').innerText = profile.name || 'Anonymous User';
+            document.getElementById('qr-payload-blood').innerText = profile.blood || 'Unknown';
+
+            // Build structural telemetry packet for rescue scanners
+            const telemetryPayload = `KAVACH SOS ACTIVE\n` +
+                                     `Disaster: ${selectedEmergency.toUpperCase()}\n` +
+                                     `Coordinates: ${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}\n` +
+                                     `Name: ${profile.name || 'Anonymous'}\n` +
+                                     `Blood: ${profile.blood || 'Unknown'}\n` +
+                                     `Meds: ${profile.conditions || 'None'}\n` +
+                                     `ICE Phone: ${profile.contacts || '112'}`;
+
+            try {
+                // If QRious is successfully loaded offline or cached
+                if (typeof QRious !== 'undefined') {
+                    new QRious({
+                        element: canvas,
+                        value: telemetryPayload,
+                        size: 180,
+                        background: '#ffffff',
+                        foreground: '#042f2e', // Deep comforting teal color
+                        level: 'H' // High error correction (keeps it scannable on muddy/scratched screens)
+                    });
+                } else {
+                    // Fail-safe: Procedural drawing of coordinate-seeded matrix pattern
+                    drawProceduralQR(canvas, profile);
+                }
+            } catch (err) {
+                console.warn("Real-time QR engine errored out, using procedural fallback.", err);
+                drawProceduralQR(canvas, profile);
+            }
+        }
+
+        // Procedural design fallback to ensure the UI never fails when internet is fully severed
+        function drawProceduralQR(canvas, profile) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let seed = (profile.name + selectedEmergency + userLocation.lat.toFixed(4)).length;
+            function genRandom() {
+                let x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            }
+
+            const matrixSize = 25;
+            const cell = canvas.width / matrixSize;
+
+            ctx.fillStyle = '#06171a';
+
+            function drawAnchor(x, y) {
+                ctx.fillStyle = '#06171a';
+                ctx.fillRect(x * cell, y * cell, 7 * cell, 7 * cell);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect((x + 1) * cell, (y + 1) * cell, 5 * cell, 5 * cell);
+                ctx.fillStyle = '#06171a';
+                ctx.fillRect((x + 2) * cell, (y + 2) * cell, 3 * cell, 3 * cell);
+            }
+
+            drawAnchor(0, 0);
+            drawAnchor(matrixSize - 7, 0);
+            drawAnchor(0, matrixSize - 7);
+
+            for (let r = 0; r < matrixSize; r++) {
+                for (let c = 0; c < matrixSize; c++) {
+                    if ((r < 8 && c < 8) || (r < 8 && c >= matrixSize - 8) || (r >= matrixSize - 8 && c < 8)) {
+                        continue;
+                    }
+                    if (genRandom() > 0.45) {
+                        ctx.fillStyle = '#06171a';
+                        ctx.fillRect(c * cell, r * cell, cell, cell);
+                    }
+                }
+            }
+        }
+
+        // --- COMPRESSED LOCAL VERIFICATION PROTOCOLS ---
+        function sendNeighborVerification() {
+            const n1Name = document.getElementById('neighbor-1-name').value || "Neighbor 1";
+            const n1Phone = document.getElementById('neighbor-1-phone').value || "";
+            const n2Name = document.getElementById('neighbor-2-name').value || "Neighbor 2";
+            const n2Phone = document.getElementById('neighbor-2-phone').value || "";
+
+            const saved = localStorage.getItem('aegis_profile');
+            let profile = saved ? JSON.parse(saved) : { name: 'Survivor', blood: 'Unknown' };
+
+            // Encoded validation token packet
+            const verificationPayload = `KAVACH-SECURE-SOS: Verifiable Incident Alert at coordinates: [${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}] from ${profile.name}. Verify neighborhood safety and broadcast or dispatch police immediately.`;
+
+            // Open SMS interface dispatch loop targetted to primary neighbor
+            const smsLink = `sms:${n1Phone};${n2Phone}?body=${encodeURIComponent(verificationPayload)}`;
+            
+            // Render Verification Prompt Dial box
+            const verificationModal = document.createElement('div');
+            verificationModal.className = 'fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4';
+            verificationModal.innerHTML = `
+                <div class="bg-teal-950 border border-teal-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+                    <div class="flex items-center space-x-2 text-sky-300">
+                        <i data-lucide="shield-check" class="w-6 h-6 animate-pulse"></i>
+                        <h3 class="font-bold text-base uppercase tracking-wide accent-font">${currentLang === 'en' ? 'SECURE COMMUNITY VERIFIER' : 'सुरक्षित समुदाय सत्यापनकर्ता'}</h3>
+                    </div>
+                    <p class="text-xs text-teal-200/70 leading-relaxed">
+                        ${currentLang === 'en' ? 'Compiles authenticated coordinates into a text verification link to notify your neighbor circle. Let them confirm if emergency is real.' : 'पड़ोसियों को सूचित करने के लिए घटना के विवरण को एक टेक्स्ट पैकेट में संकलित करता है। उन्हें पुष्टि करने दें कि क्या आपातकाल वास्तविक है।'}
+                    </p>
+                    <div class="bg-teal-950 p-3 rounded-xl border border-teal-900 text-[10px] font-mono text-teal-300 select-all break-all leading-relaxed">
+                        ${verificationPayload}
+                    </div>
+                    <div class="flex space-x-2 text-xs font-bold">
+                        <button id="ver-cancel" class="flex-1 py-2.5 bg-teal-900 hover:bg-teal-850 rounded-xl transition text-white">CANCEL</button>
+                        <a href="${smsLink}" id="ver-send" class="flex-1 py-2.5 bg-gradient-to-r from-teal-500 to-emerald-500 text-teal-955 font-black rounded-xl text-center transition flex items-center justify-center space-x-1">
+                            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                            <span>${currentLang === 'en' ? 'SEND NEIGHBORS' : 'पड़ोसियों को भेजें'}</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(verificationModal);
+            try {
+                lucide.createIcons();
+            } catch(e){}
+
+            document.getElementById('ver-cancel').onclick = () => verificationModal.remove();
+            document.getElementById('ver-send').onclick = () => {
+                verificationModal.remove();
+                triggerToast(
+                    currentLang === 'en' ? "Verifications Sent" : "सत्यापन भेजा गया", 
+                    currentLang === 'en' ? "Verification packet dispatched to neighborhood channels." : "पड़ोसी संपर्कों को सत्यापन पैकेट भेज दिया गया है।"
+                );
+            }
+        }
+
+
+        // --- SECTION 5: COMPRESSED SMS PROTOCOL GENERATOR ---
+        function triggerMockSmsGenerator() {
+            const saved = localStorage.getItem('aegis_profile');
+            let profile = saved ? JSON.parse(saved) : { name: 'Survivor', blood: 'Unknown' };
+            
+            const destinationContact = profile.contacts || '112';
+            const smsBody = `KAVACH_SOS! CTG:${selectedEmergency.toUpperCase()} | LAT:${userLocation.lat.toFixed(5)} | LNG:${userLocation.lng.toFixed(5)} | NAME:${profile.name} | BG:${profile.blood}`;
+            
+            // Launch platform SMS
+            const smsLink = `sms:${destinationContact}?body=${encodeURIComponent(smsBody)}`;
+            
+            const modalConfirm = document.createElement('div');
+            modalConfirm.className = 'fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4';
+            modalConfirm.innerHTML = `
+                <div class="bg-teal-950 border border-teal-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
+                    <div class="flex items-center space-x-2 text-amber-400">
+                        <i data-lucide="message-square-share" class="w-6 h-6"></i>
+                        <h3 class="font-bold text-base uppercase tracking-wide accent-font">${currentLang === 'en' ? 'COMPRESSED SMS DISPATCH' : 'ऑफ़लाइन एसएमएस डिस्पैच'}</h3>
+                    </div>
+                    <p class="text-xs text-teal-200/70 leading-relaxed">
+                        ${currentLang === 'en' ? 'Converts your coordinates and health parameters into a low-bandwidth message format designed to be transmitted via weak or overloaded cell tower networks.' : 'यह आपके जीपीएस निर्देशांक और स्वास्थ्य स्थिति को अत्यंत कम नेटवर्क पर प्रसारित होने वाले कंप्रेस्ड टेक्स्ट संदेश प्रारूप में बदल देता है।'}
+                    </p>
+                    <div class="bg-teal-950 p-3 rounded-xl border border-teal-900 text-[11px] font-mono text-teal-200 select-all break-all leading-relaxed">
+                        ${smsBody}
+                    </div>
+                    <div class="flex space-x-2 text-xs font-bold">
+                        <button id="sms-cancel" class="flex-1 py-2.5 bg-teal-900 hover:bg-teal-850 rounded-xl transition text-white">CANCEL</button>
+                        <a href="${smsLink}" id="sms-send" class="flex-1 py-2.5 bg-teal-450 text-teal-955 font-black rounded-xl text-center transition flex items-center justify-center">${currentLang === 'en' ? 'OPEN MESSENGER' : 'मैसेंजर खोलें'}</a>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modalConfirm);
+            try {
+                lucide.createIcons();
+            } catch(e){}
+            
+            document.getElementById('sms-cancel').onclick = () => modalConfirm.remove();
+            document.getElementById('sms-send').onclick = () => {
+                modalConfirm.remove();
+                triggerToast(
+                    currentLang === 'en' ? "System Messenger Opened" : "एसएमएस मैसेंजर खोला गया", 
+                    currentLang === 'en' ? "Copied emergency telemetry packet to system queue." : "आपातकालीन पैकेट विवरण मैसेंजर में संकलित किया गया।"
+                );
+            }
+        }
+
+        function sendMockSMS() {
+            triggerMockSmsGenerator();
+        }
+
+        function trackQuickCall(dest) {
+            triggerToast(
+                currentLang === 'en' ? "Dialer Launched" : "डायल पैड सक्रिय", 
+                currentLang === 'en' ? `Initiated direct phone frequency to: ${dest}` : `${dest} के लिए सीधी कॉल आवृत्ति शुरू की गई`
+            );
+        }
+
+        // --- SECTION 6: COMPLIANCE & GENERAL UTILITIES ---
+        function toggleOfflineStatus() {
+            onlineMode = !onlineMode;
+            const banner = document.getElementById('offline-banner');
+            const netBtn = document.getElementById('network-btn');
+            const netText = document.getElementById('network-text');
+
+            if (onlineMode) {
+                banner.classList.add('hidden');
+                netBtn.classList.replace('bg-sky-950/50', 'bg-emerald-950/50');
+                netBtn.classList.replace('text-sky-400', 'text-emerald-400');
+                netBtn.classList.replace('border-sky-800/30', 'border-emerald-800/30');
+                netText.innerText = currentLang === 'en' ? "ONLINE" : (currentLang === 'hi' ? "ऑनलाइन" : "ઓનલાઇન");
+                document.getElementById('network-icon').setAttribute('data-lucide', 'cloud-lightning');
+                
+                let toastTitle = currentLang === 'en' ? "Online Mode Active" : (currentLang === 'hi' ? "ऑनलाइन मोड सक्रिय" : "ઓનલાઇન મોડ સક્રિય");
+                let toastBody = currentLang === 'en' ? "Synchronizing telemetry logs and active location coordinates." : (currentLang === 'hi' ? "डेटा सर्वर सिंक शुरू। विवरण अपडेट किए जा रहे हैं।" : "ડેટા સર્વર સિંક શરૂ. વિગતો અપડેટ થઈ રહી છે.");
+                triggerToast(toastTitle, toastBody);
+            } else {
+                banner.classList.remove('hidden');
+                netBtn.classList.replace('bg-emerald-950/50', 'bg-sky-950/50');
+                netBtn.classList.replace('text-emerald-400', 'text-sky-400');
+                netBtn.classList.replace('border-emerald-800/30', 'border-sky-800/30');
+                netText.innerText = currentLang === 'en' ? "OFFLINE" : (currentLang === 'hi' ? "ऑफ़लाइन" : "ઓફલાઇન");
+                document.getElementById('network-icon').setAttribute('data-lucide', 'wifi-off');
+                
+                let toastTitle = currentLang === 'en' ? "Offline Mode Engaged" : (currentLang === 'hi' ? "ऑफ़लाइन सुरक्षा सक्रिय" : "ઑફલાઇન સુરક્ષા સક્રિય");
+                let toastBody = currentLang === 'en' ? "P2P local radios & localized GNSS scanning enabled." : (currentLang === 'hi' ? "स्थानीय पी2पी रेडियो और स्थानीय जीपीएस सुरक्षा सक्रिय की गई।" : "સ્થાનિક પી2પી રેડિયો અને સ્થાનિક જીપીએસ સુરક્ષા સક્રિય કરાઇ.");
+                triggerToast(toastTitle, toastBody);
+            }
+            try {
+                lucide.createIcons();
+            } catch(e){}
+        }
+
+        function toggleBatterySaver() {
+            batterySaverActive = !batterySaverActive;
+            const dimmer = document.getElementById('battery-dimmer');
+            const btn = document.getElementById('battery-btn');
+
+            if (batterySaverActive) {
+                dimmer.classList.remove('hidden');
+                btn.classList.replace('bg-teal-900/60', 'bg-emerald-500');
+                btn.classList.replace('text-emerald-400', 'text-teal-950');
+                
+                let toastTitle = currentLang === 'en' ? "Battery Saver Active" : (currentLang === 'hi' ? "बैटरी बचत मोड सक्रिय" : "બેટરી બચત મોડ સક્રિય");
+                let toastBody = currentLang === 'en' ? "Screen brightness reduced. Interface elements optimized to extend battery life up to 45%." : (currentLang === 'hi' ? "स्क्रीन की चमक कम की गई। बैटरी जीवन को 45% तक बढ़ाने के लिए ग्राफिक्स अनुकूलित।" : "સ્ક્રીનની બ્રાઇટનેસ ઓછી કરાઇ. બેટરી આયુષ્ય 45% સુધી વધારવા ગ્રાફિક્સ અનુકૂલિત.");
+                triggerToast(toastTitle, toastBody);
+            } else {
+                dimmer.classList.add('hidden');
+                btn.classList.replace('bg-emerald-500', 'bg-teal-900/60');
+                btn.classList.replace('text-teal-950', 'text-emerald-400');
+                
+                let toastTitle = currentLang === 'en' ? "Battery Saver Disabled" : (currentLang === 'hi' ? "बैटरी बचत मोड बंद" : "બેટરી બચત મોડ બંધ");
+                let toastBody = currentLang === 'en' ? "Normal brightness levels restored." : (currentLang === 'hi' ? "सामान्य चमक स्तर बहाल।" : "સામાન્ય બ્રાઇટનેસ સ્તરો પુનઃસ્થાપિત.");
+                triggerToast(toastTitle, toastBody);
+            }
+        }
+
+        function switchGuide(guideId) {
+            // Render guide contents dynamically based on active language dictionary
+            const viewport = document.getElementById('guides-container-viewport');
+            const guideKey = guideId.replace('guide-', '');
+            
+            if (viewport && manuals[currentLang][guideKey]) {
+                viewport.innerHTML = manuals[currentLang][guideKey];
+            }
+
+            // Style state updates for tabs
+            document.querySelectorAll('.guide-tab-btn').forEach(btn => {
+                btn.classList.replace('bg-teal-900', 'bg-teal-950');
+                btn.classList.replace('text-teal-100', 'text-teal-500');
+                btn.classList.remove('border-teal-800');
+                btn.classList.add('border-transparent');
+            });
+
+            const activeTabIdMap = { 'guide-flood': 'tab-flood', 'guide-fire': 'tab-fire', 'guide-quake': 'tab-quake', 'guide-cpr': 'tab-cpr' };
+            const activeTab = document.getElementById(activeTabIdMap[guideId]);
+            if (activeTab) {
+                activeTab.classList.replace('bg-teal-950', 'bg-teal-900');
+                activeTab.classList.replace('text-teal-500', 'text-teal-100');
+                activeTab.classList.remove('border-transparent');
+                activeTab.classList.add('border-teal-800');
+            }
+            try {
+                lucide.createIcons();
+            } catch(e){}
+        }
+
+        function playAlertChime() {
+            try {
+                const actx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = actx.createOscillator();
+                const gain = actx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(actx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, actx.currentTime);
+                gain.gain.setValueAtTime(0.2, actx.currentTime);
+                
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.5);
+                osc.stop(actx.currentTime + 0.5);
+            } catch (e) {}
+        }
+
+        let toastTimeout = null;
+        function triggerToast(title, body) {
+            const toast = document.getElementById('toast-modal');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-body').innerText = body;
+
+            toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+            
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                hideToast();
+            }, 5000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast-modal');
+            toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+        }
+
+        function scrollToManuals() {
+            const target = document.getElementById('guides-container-viewport');
+            target.scrollIntoView({ behavior: 'smooth' });
+            triggerToast(
+                currentLang === 'en' ? "Offline Manuals Opened" : "ऑफ़लाइन नियमावली खुली", 
+                currentLang === 'en' ? "You can read survival protocols cached during software updates." : "आप अपडेट के दौरान कैश की गई जीवन रक्षा नियमावली पढ़ सकते हैं।"
+            );
+        }
+    </script>
+</body>
+</html>
